@@ -31,9 +31,9 @@
 // Last revision: 07/11/2022
 
 #include "MainWindow.h"
-#include "CentralSphere.h"
-#include "GoldSphere.h"
-#include "Ground.h"
+#include "SceneLoader.h"
+#include "math/Quaternion.h"
+#include "math/Real.h"
 
 /////////////////////////////////////////////////////////////////////
 //
@@ -48,6 +48,7 @@ MainWindow::MainWindow(int width, int height):
 void
 MainWindow::initialize()
 {
+
   Base::initialize();
 
   raycaster = std::make_unique<Raycaster>(width(), height());
@@ -56,19 +57,15 @@ MainWindow::initialize()
   glEnable(GL_POLYGON_OFFSET_FILL);
   glPolygonOffset(1.0f, 1.0f);
 
-  sceneManager.createScene("main",
-    new CentralSphere(),
-    new Ground(),
-    new GoldSphere()
-  );
+  SceneLoader::load("../assets/scenes/TP1.yml", sceneManager);
 
-  sceneManager.addLight("main", { 6, -4, 1}, cg::Color::red);
-  sceneManager.addLight("main", { 10, 25, 10}, cg::Color::magenta * 0.7f);
+  sceneManager.setActiveScene("TP1");
 
-  sceneManager.setActiveScene("main");
+  pbrRenderer = std::make_unique<PBRRenderer>();
 
-  if (auto* scene = sceneManager.getActiveScene()) 
-    raycaster->render(*scene);
+  pbrRenderer->initialize();
+
+  currentRenderMode = RenderMode::OpenGL;
 
 }
 
@@ -78,19 +75,62 @@ MainWindow::update()
   
   sceneManager.update(deltaTime());
 
+  auto light = sceneManager.getActiveScene()->getLight(0);
+
+  cg::vec3f p = light->position();
+
+  cg::quatf rotation(5.0f, {0, 1, 0});
+
+  p = rotation.rotate(p);
+
+  light->setPosition(p);
+
 }
 
 void
 MainWindow::renderScene()
 {
   
-  using namespace cg;
+  glClearColor(0.5f, 0.8f, 0.92f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  auto g3 = this->g3();
+  auto* scene = sceneManager.getActiveScene();
+  
+  if (!scene) 
+    return;
+
+  if (height() > 0) {
+    float ratio = (float)width() / (float)height();
+    scene->camera.setAspectRatio(ratio);
+    scene->camera.update(); 
+  }
+
+  if (currentRenderMode == RenderMode::OpenGL) {
+
+    if (pbrRenderer) {
+
+      pbrRenderer->setImageSize(width(), height());
+      
+      pbrRenderer->render(*scene);
+
+    }
+
+  } 
+  else if (currentRenderMode == RenderMode::RayCasting) {
+
+    if (raycaster) {
     
-  if (raycaster && raycaster->getImage())
-    raycaster->getImage()->draw(0, 0);
+      raycaster->render(*scene);
+      
+      if (raycaster->getImage())
+        raycaster->getImage()->draw(0, 0);
     
+    }
+
+  }
+  
+  gui();
+
 }
 
 bool

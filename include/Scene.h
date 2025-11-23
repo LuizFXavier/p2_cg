@@ -11,9 +11,15 @@ class Scene {
 
 public:
 
+    cg::Camera camera;
+
     std::string name;
     std::vector<cg::Light> lights;
     cg::Color ambientLight{ cg::Color::darkGray }; 
+
+    const std::vector<std::unique_ptr<Actor>>& getActors() const {
+        return actors;
+    }
 
 private:
 
@@ -64,6 +70,16 @@ public:
 
         lights.push_back(light);
 
+    }
+
+    void addActor(Actor* actor) {
+
+        actors.push_back(std::unique_ptr<Actor>(actor));
+
+    }
+
+    cg::Light* getLight(size_t index) {
+        return &lights[index];
     }
 
     Intersection intersect(cg::Ray3f& ray) {

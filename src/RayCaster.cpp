@@ -5,15 +5,9 @@ Raycaster::Raycaster(int width, int height) : imageBuffer(width, height) {
 
     image = std::make_unique<cg::GLImage>(width, height);
 
-    camera.setAspectRatio((float)width / height);
-    camera.setViewAngle(60.0f);
-    camera.setPosition({ 10, 2, 12 });
-    camera.setDirectionOfProjection(-camera.position());
-    camera.update();
-
 }
 
-cg::Ray3f Raycaster::generateRay(int x, int y) {
+cg::Ray3f Raycaster::generateRay(const cg::Camera& camera, int x, int y) {
     
     float fov = camera.viewAngle(); 
     float aspect = camera.aspectRatio();
@@ -28,9 +22,9 @@ cg::Ray3f Raycaster::generateRay(int x, int y) {
     cg::vec3f direction_cam = cg::vec3f{cx, cy, -d}.normalize();
 
     const auto& camToWorld = camera.cameraToWorldMatrix();
-    cg::vec3f direction_world = camToWorld.transformVector(direction_cam);
+    cg::vec3f directionWorld = camToWorld.transformVector(direction_cam);
 
-    return cg::Ray{ camera.position(), direction_world };
+    return cg::Ray{ camera.position(), directionWorld };
 
 }
 
@@ -81,10 +75,13 @@ void Raycaster::render(Scene& scene) {
     int w = imageBuffer.width();
     int h = imageBuffer.height();
 
+    scene.camera.setAspectRatio((float)w / h);
+    scene.camera.update();
+
     for (int y = 0; y < h; ++y)
         for (int x = 0; x < w; ++x) {
 
-            cg::Ray ray = generateRay(x, y);
+            cg::Ray ray = generateRay(scene.camera, x, y);
             Intersection hit = scene.intersect(ray);
             
             cg::Color finalColor;

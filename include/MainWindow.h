@@ -40,6 +40,12 @@
 #include "graphics/GLImage.h"
 #include "Intersection.h"
 #include "RayCaster.h"
+#include "PBRRenderer.h"
+
+enum class RenderMode {
+  OpenGL,   
+  RayCasting
+};
 
 /////////////////////////////////////////////////////////////////////
 //
@@ -55,6 +61,9 @@ private:
 
   SceneManager sceneManager;
   std::unique_ptr<Raycaster> raycaster;
+  std::unique_ptr<PBRRenderer> pbrRenderer; 
+
+  RenderMode currentRenderMode = RenderMode::OpenGL;
 
   // Overridden method examples
   void initialize() override;

@@ -64,6 +64,22 @@ public:
         return activeScene;
     }
 
+    Scene* getScene(std::string name) {
+
+        auto it = scenes.find(name);
+
+        Scene* sc = nullptr;
+
+        if (it != scenes.end()) 
+            sc = it->second.get();
+
+        else 
+            puts("não foi achado a cena");
+
+        return sc;
+
+    }
+
     void update(float deltaTime) {
 
         if (activeScene) 

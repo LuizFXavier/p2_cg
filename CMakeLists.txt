@@ -8,6 +8,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/Ds/include 
   ${CMAKE_CURRENT_SOURCE_DIR}/Ds/externals/include 
+  ${CMAKE_CURRENT_SOURCE_DIR}/externals/include 
   ${GLFW_INCLUDE_DIRS}   
 )
 
@@ -15,6 +16,8 @@ add_executable(p2
   src/Main.cpp
   src/MainWindow.cpp
   src/RayCaster.cpp
+  src/PBRRenderer.cpp
+  src/SceneLoader.cpp
 )
 
 find_package(OpenGL REQUIRED)

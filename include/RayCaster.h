@@ -27,7 +27,8 @@ private:
     std::unique_ptr<cg::GLImage> image;
     cg::ImageBuffer imageBuffer; 
 
-    cg::Ray3f generateRay(int x, int y);
+    cg::Ray3f generateRay(const cg::Camera& camera, int x, int y);
+    
     cg::Color shade(Scene& scene, const cg::Ray3f& ray, const Intersection& hit);
 
 };
