@@ -1,0 +1,27 @@
+name: "TP1"
+camera:
+  position: [0, 2, 15]
+  fov: 45.0
+
+lights:
+  - position: [5, 1.01, 5]
+    color: [25, 25, 25]
+  - position: [5, 25, 5]
+    color: [250, 250, 250]
+
+actors:
+  - type: "Ground"
+    position: [0, -2, 0]
+    scale: [20, 0.1, 20]
+    material:
+      diffuse: [0.0, 1.0, 0.0]
+      specular: [0.04, 0.04, 0.04]
+      shine: 1
+
+  - type: "CentralSphere"
+    position: [0, 0, 0]
+    scale: [1, 1, 1]
+    material:
+      diffuse: [1.0, 0.0, 0.0]
+      specular: [0.04, 0.04, 0.04]
+      shine: 0.1
