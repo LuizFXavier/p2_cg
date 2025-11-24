@@ -1,7 +1,7 @@
 #include "SceneLoader.h"
-#include "Ground.h"
+#include "actors/Ground.h"
 #include "SphereShape.h" 
-#include "CentralSphere.h"
+#include "actors/CentralSphere.h"
 #include "graphics/GLMesh.h"
 #include "graphics/GLGraphics3.h"
 #include <fstream>
