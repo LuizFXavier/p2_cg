@@ -35,20 +35,6 @@
 #include "math/Quaternion.h"
 #include "math/Real.h"
 
-// callback que precisa pra funcionar o seletor
-static bool vectocGetter(void* vec, int i, const char** outText) {
-
-  auto& vector = *static_cast<std::vector<std::string>*>(vec);
-
-  if (i < 0 || i >= static_cast<int>(vector.size())) 
-    return false;
-
-  *outText = vector[i].c_str();
-
-  return true;
-
-}
-
 /////////////////////////////////////////////////////////////////////
 //
 // MainWindow implementation
@@ -74,9 +60,11 @@ MainWindow::initialize()
   SceneLoader::load("../assets/scenes/central_sphere.yml", sceneManager);
   SceneLoader::load("../assets/scenes/tp1.yml", sceneManager);
 
-  sceneManager.setActiveScene("central_sphere");
+  sceneManager.setActiveScene("tp1");
 
   pbrRenderer = std::make_unique<PBRRenderer>();
+
+  view = std::make_unique<View>(&sceneManager);
 
   pbrRenderer->initialize();
 
@@ -160,47 +148,21 @@ void
 MainWindow::gui()
 {
 
-  ImGui::Begin("controle de cena");
+  auto* scene =  sceneManager.getActiveScene();
 
-  static int currentScene = 0;
+  ImGui::Begin((std::string("Controles ") + scene->name).c_str());
 
-  auto sceneNames = sceneManager.getSceneNames();
-  
-  if (auto* scene = sceneManager.getActiveScene()) {
+  if (scene->name == "tp1") {
 
-    for (int i = 0; i < sceneNames.size(); i++)
-      if (sceneNames[i] == scene->name) {
+    view->cameraControl();
 
-        currentScene = i;
+    view->lightControl();
 
-        break;
-
-      } 
+    view->materialControl();
 
   }
 
-  if (ImGui::Combo("trocar cena", &currentScene, vectocGetter, static_cast<void*>(&sceneNames), sceneNames.size())) {
-
-    std::string newSceneName = sceneNames[currentScene];
-    sceneManager.setActiveScene(newSceneName);
-    
-    auto* newScene = sceneManager.getActiveScene();
-
-    if (newScene) {
-      
-      float ratio = (float)width() / (float)height();
-
-      newScene->camera.setAspectRatio(ratio);
-      newScene->camera.update();
-
-      pbrRenderer = std::make_unique<PBRRenderer>();
-      pbrRenderer->initialize();
-
-    }
-
-  }
-
-  ImGui::Separator();
+  view->sceneControl();
 
   ImGui::End();
 

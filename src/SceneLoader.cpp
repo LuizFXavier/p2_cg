@@ -1,12 +1,22 @@
 #include "SceneLoader.h"
-#include "actors/Ground.h"
 #include "SphereShape.h" 
-#include "actors/CentralSphere.h"
 #include "graphics/GLMesh.h"
 #include "graphics/GLGraphics3.h"
 #include <fstream>
 #include <iostream>
 #include "fkYAML/node.hpp"
+#include "actors/Ground.h"
+#include "actors/CentralSphere.h"
+#include "actors/AluminumSphere.h"
+#include "actors/CopperSphere.h"
+#include "actors/GoldSphere.h"
+#include "actors/SilverSphere.h"
+#include "actors/TitaniumSphere.h"
+#include "actors/PolishedBlueSphere.h"
+#include "actors/PolishedCyanSphere.h"
+#include "actors/PolishedGreenSphere.h"
+#include "actors/PolishedRedSphere.h"
+#include "actors/PolishedYellowSphere.h"
 
 cg::vec3f readVec3(const fkyaml::node& node) {
 
@@ -37,6 +47,36 @@ void setActorType(Actor** actor, const std::string& type) {
 
     else if (type == "CentralSphere") 
         *actor = new CentralSphere();
+
+    else if (type == "AluminumSphere") 
+        *actor = new AluminumSphere();
+
+    else if (type == "CopperSphere") 
+        *actor = new CopperSphere();
+
+    else if (type == "GoldSphere") 
+        *actor = new GoldSphere();
+
+    else if (type == "SilverSphere") 
+        *actor = new SilverSphere();
+
+    else if (type == "TitaniumSphere") 
+        *actor = new TitaniumSphere();
+
+    else if (type == "PolishedBlueSphere") 
+        *actor = new PolishedBlueSphere();
+
+    else if (type == "PolishedCyanSphere") 
+        *actor = new PolishedCyanSphere();
+
+    else if (type == "PolishedGreenSphere") 
+        *actor = new PolishedGreenSphere();
+
+    else if (type == "PolishedRedSphere") 
+        *actor = new PolishedRedSphere();
+
+    else if (type == "PolishedYellowSphere") 
+        *actor = new PolishedYellowSphere();
 
 }
 

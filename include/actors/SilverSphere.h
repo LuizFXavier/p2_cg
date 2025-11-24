@@ -3,13 +3,13 @@
 #include "Actor.h"
 #include "SphereShape.h"
 
-class GoldSphere : public Actor {
+class SilverSphere : public Actor {
     
 public:
 
     void start() override {
 
-        tag = "Gold Sphere";
+        tag = "Silver Sphere";
 
         shape = std::make_unique<SphereShape>();
 

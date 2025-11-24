@@ -41,6 +41,7 @@
 #include "Intersection.h"
 #include "RayCaster.h"
 #include "PBRRenderer.h"
+#include "View.h"
 
 enum class RenderMode {
   OpenGL,   
@@ -62,6 +63,7 @@ private:
   SceneManager sceneManager;
   std::unique_ptr<Raycaster> raycaster;
   std::unique_ptr<PBRRenderer> pbrRenderer; 
+  std::unique_ptr<View> view;
 
   RenderMode currentRenderMode = RenderMode::OpenGL;
 
