@@ -35,6 +35,20 @@
 #include "math/Quaternion.h"
 #include "math/Real.h"
 
+// callback que precisa pra funcionar o seletor
+static bool vectocGetter(void* vec, int i, const char** outText) {
+
+  auto& vector = *static_cast<std::vector<std::string>*>(vec);
+
+  if (i < 0 || i >= static_cast<int>(vector.size())) 
+    return false;
+
+  *outText = vector[i].c_str();
+
+  return true;
+
+}
+
 /////////////////////////////////////////////////////////////////////
 //
 // MainWindow implementation
@@ -58,6 +72,7 @@ MainWindow::initialize()
   glPolygonOffset(1.0f, 1.0f);
 
   SceneLoader::load("../assets/scenes/central_sphere.yml", sceneManager);
+  SceneLoader::load("../assets/scenes/tp1.yml", sceneManager);
 
   sceneManager.setActiveScene("central_sphere");
 
@@ -132,8 +147,6 @@ MainWindow::renderScene()
     }
 
   }
-  
-  gui();
 
 }
 
@@ -146,4 +159,49 @@ MainWindow::keyInputEvent(int key, int action, int mods)
 void
 MainWindow::gui()
 {
+
+  ImGui::Begin("controle de cena");
+
+  static int currentScene = 0;
+
+  auto sceneNames = sceneManager.getSceneNames();
+  
+  if (auto* scene = sceneManager.getActiveScene()) {
+
+    for (int i = 0; i < sceneNames.size(); i++)
+      if (sceneNames[i] == scene->name) {
+
+        currentScene = i;
+
+        break;
+
+      } 
+
+  }
+
+  if (ImGui::Combo("trocar cena", &currentScene, vectocGetter, static_cast<void*>(&sceneNames), sceneNames.size())) {
+
+    std::string newSceneName = sceneNames[currentScene];
+    sceneManager.setActiveScene(newSceneName);
+    
+    auto* newScene = sceneManager.getActiveScene();
+
+    if (newScene) {
+      
+      float ratio = (float)width() / (float)height();
+
+      newScene->camera.setAspectRatio(ratio);
+      newScene->camera.update();
+
+      pbrRenderer = std::make_unique<PBRRenderer>();
+      pbrRenderer->initialize();
+
+    }
+
+  }
+
+  ImGui::Separator();
+
+  ImGui::End();
+
 }

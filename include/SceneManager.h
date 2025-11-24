@@ -80,6 +80,17 @@ public:
 
     }
 
+    std::vector<std::string> getSceneNames() const {
+
+        std::vector<std::string> names;
+
+        for (const auto& pair : scenes)
+            names.push_back(pair.first);
+        
+        return names;
+
+    }
+
     void update(float deltaTime) {
 
         if (activeScene) 
