@@ -6,6 +6,7 @@
 #include "graphics/Material.h"
 #include "geometry/Ray.h"
 #include "graphics/GLMesh.h"
+#include "PBRMaterial.h"
 
 #include <memory>
 
@@ -17,7 +18,7 @@ public:
     cg::quatf rotation{};
     cg::vec3f scale{1, 1, 1};
 
-    cg::Material material{cg::Color::white};
+    PBRMaterial material{cg::Color::white};
     
     cg::GLMesh* mesh = nullptr;
 

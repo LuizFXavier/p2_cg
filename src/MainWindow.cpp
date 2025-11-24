@@ -57,9 +57,9 @@ MainWindow::initialize()
   glEnable(GL_POLYGON_OFFSET_FILL);
   glPolygonOffset(1.0f, 1.0f);
 
-  SceneLoader::load("../assets/scenes/TP1.yml", sceneManager);
+  SceneLoader::load("../assets/scenes/central_sphere.yml", sceneManager);
 
-  sceneManager.setActiveScene("TP1");
+  sceneManager.setActiveScene("central_sphere");
 
   pbrRenderer = std::make_unique<PBRRenderer>();
 
@@ -75,15 +75,19 @@ MainWindow::update()
   
   sceneManager.update(deltaTime());
 
-  auto light = sceneManager.getActiveScene()->getLight(0);
+  if (sceneManager.getActiveScene()->name == "central_sphere") {
 
-  cg::vec3f p = light->position();
+    auto light = sceneManager.getActiveScene()->getLight(0);
 
-  cg::quatf rotation(5.0f, {0, 1, 0});
+    cg::vec3f p = light->position();
 
-  p = rotation.rotate(p);
+    cg::quatf rotation(5.0f, {0, 1, 0});
 
-  light->setPosition(p);
+    p = rotation.rotate(p);
+
+    light->setPosition(p);
+
+  }
 
 }
 

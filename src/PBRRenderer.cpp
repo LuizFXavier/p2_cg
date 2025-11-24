@@ -119,12 +119,11 @@ void PBRRenderer::setLightUniforms(const std::vector<cg::Light>& lights, const c
 
 }
 
-// TODO: quando tiver GUI mudar o uMaterial.m 
-void PBRRenderer::setMaterialUniforms(const cg::Material& mat) {
+void PBRRenderer::setMaterialUniforms(const PBRMaterial& mat) {
 
     program->setUniformVec3("uMaterial.Od", mat.diffuse);
     program->setUniformVec3("uMaterial.Os", mat.specular);
     program->setUniform("uMaterial.r", mat.shine); 
-    program->setUniform("uMaterial.m", 0.0f);     
+    program->setUniform("uMaterial.m", mat.metalness);     
   
 }

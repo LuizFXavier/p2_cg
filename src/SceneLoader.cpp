@@ -19,7 +19,7 @@ cg::vec3f readVec3(const fkyaml::node& node) {
     }
 
     return v;
-    
+
 }
 
 cg::Color readColor(const fkyaml::node& node) {
@@ -133,6 +133,9 @@ void SceneLoader::load(const std::string& filename, SceneManager& manager) {
                         
                         if (mat.contains("shine")) 
                             actor->material.shine = mat["shine"].get_value<float>();
+
+                        if (mat.contains("metalness")) 
+                            actor->material.metalness = mat["metalness"].get_value<float>();
                         
                     }
                     

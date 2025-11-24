@@ -1,4 +1,4 @@
-name: "TP1"
+name: "central_sphere"
 camera:
   position: [0, 2, 15]
   fov: 45.0
@@ -25,3 +25,4 @@ actors:
       diffuse: [1.0, 0.0, 0.0]
       specular: [0.04, 0.04, 0.04]
       shine: 0.1
+      metalness: 0.25

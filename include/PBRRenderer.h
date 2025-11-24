@@ -3,6 +3,7 @@
 #include "graphics/GLRenderer.h"
 #include "graphics/GLProgram.h"
 #include "Scene.h"
+#include "PBRMaterial.h"
 
 class PBRRenderer {
 
@@ -26,6 +27,6 @@ private:
     const char* fragmentShader;
 
     void setLightUniforms(const std::vector<cg::Light>& lights, const cg::mat4f& viewMatrix);
-    void setMaterialUniforms(const cg::Material& mat);
+    void setMaterialUniforms(const PBRMaterial& mat);
 
 };
