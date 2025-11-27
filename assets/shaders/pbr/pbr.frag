@@ -73,7 +73,7 @@ void main() {
     float m = uMaterial.m;
 
     // se for metal m = 1, não há reflexão difusa então Od = 0
-    Od = mix(Od, vec3(0.0, 0.0, 0.0), m);
+    Od = Od * (1.0 - m);
 
     // parcela difusa lambertiana
     vec3 fd = Od / PI;
@@ -114,7 +114,6 @@ void main() {
             // conservação de energia kD = 1 - kS 
             vec3 kS = F;
             vec3 kD = vec3(1.0, 1.0, 1.0) - kS;
-            kD *= (1.0 - m); 
 
             // f(Ll, V) = fd + fs
             vec3 f = (kD * fd) + fs;
