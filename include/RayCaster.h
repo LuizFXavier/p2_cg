@@ -28,7 +28,7 @@ public:
         PBR
     };
 
-    int lightModel = Raycaster::PHONG;
+    int lightModel = Raycaster::PBR;
 
     Raycaster(int width, int height);
 
@@ -122,11 +122,7 @@ Raycaster::trace(cg::Ray3f& ray){
 inline bool
 Raycaster::intersect(cg::Ray3f& ray, Intersection& hit){
     
-    bool found = false;
-
-    bool isHit = _scene->intersect(ray, hit);
-    
-    return hit.operator bool();
+    return _scene->intersect(ray, hit);;
 }
 
 inline cg::Color
@@ -155,8 +151,8 @@ Raycaster::shoot(float x, float y){
 
 inline bool
 Raycaster::shadow(cg::Ray3f& ray){
-    
-    return bool(_scene->intersect(ray));
+    Intersection hit;
+    return _scene->intersect(ray, hit);
 }
 
 inline void

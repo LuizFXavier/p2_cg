@@ -1,6 +1,7 @@
 #pragma once
 
 #include "geometry/Ray.h"
+#include "geometry/Intersection.h"
 
 class Shape3 {
 
