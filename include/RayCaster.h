@@ -5,6 +5,7 @@
 #include "graphics/GLImage.h"
 #include "graphics/Image.h"
 #include "Intersection.h"
+#include "LightPBR.h"
 #include <memory>
 #include <iostream>
 #include <array>
@@ -21,6 +22,13 @@ struct Viewport{
 class Raycaster {
 
 public:
+
+    enum LightModel{
+        PHONG,
+        PBR
+    };
+
+    int lightModel = Raycaster::PHONG;
 
     Raycaster(int width, int height);
 
@@ -75,6 +83,9 @@ private:
     }
 
     cg::Color trace(cg::Ray3f& ray);
+
+    cg::Color phongLightModel(const cg::Ray3f&, const Intersection&);
+    cg::Color pbrLightModel(const cg::Ray3f&, const Intersection&);
 
     cg::Color background(){return _scene->backgroundColor;}
 };
