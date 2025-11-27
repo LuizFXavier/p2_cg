@@ -7,12 +7,14 @@ class PlaneShape : public Shape3 {
 
 public:
 
-    Intersection intersect(cg::Ray3f& ray, cg::mat4f& transform) override {
+    bool intersect(const cg::Ray3f& ray, const cg::mat4f& transform, cg::Intersection& hit) override {
+
+        Intersection& _hit = static_cast<Intersection&>(hit);
 
         cg::mat4f invMatrix;
 
         if (!transform.inverse(invMatrix))
-            return {};
+            return false;
 
         // aqui vai de local pra global
 
@@ -29,18 +31,18 @@ public:
         float denominator = localDirection.dot(planeNormal);
 
         if (std::abs(denominator) < 0.0001f) 
-            return {};
+            return false;
         
 
         float t = (planeNormal.dot(-localOrigin)) / denominator;
 
         if (t <= 0.001f) 
-            return {};
+            return false;
 
         cg::vec3f localPoint = localOrigin + localDirection * t;
 
         if (std::abs(localPoint.x) > 1.0f || std::abs(localPoint.z) > 1.0f)
-            return {}; 
+            return false; 
 
         // caso houver intersecao
         
@@ -50,13 +52,11 @@ public:
 
         cg::vec3f normal = invMatrix.transposed().transformVector(planeNormal).normalize();
 
-        Intersection intersection;
-
-        intersection.distance = distance;
-        intersection.point = point;
-        intersection.normal = normal;
+        _hit.distance = distance;
+        _hit.point = point;
+        _hit.normal = normal;
         
-        return intersection;
+        return true;
         
     }
 

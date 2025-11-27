@@ -1,17 +1,20 @@
 #pragma once
 
 #include "Shape3.h"
+#include "Intersection.h"
 
 class SphereShape : public Shape3 {
 
 public:
 
-    Intersection intersect(cg::Ray3f& ray, cg::mat4f& transform) override {
+    bool intersect(const cg::Ray3f& ray, const cg::mat4f& transform, cg::Intersection& hit) override {
+
+        Intersection& _hit = static_cast<Intersection&>(hit);
 
         cg::mat4f invMatrix;
 
         if (!transform.inverse(invMatrix))
-            return {};
+            return false;
         
         // aqui vai de local pra global
         
@@ -31,7 +34,7 @@ public:
         float delta = (b * b) - (4 * a * c);
 
         if (delta < 0)
-            return {}; 
+            return false; 
 
         float t0 = (-b - sqrt(delta)) / (2 * a);
         float t1 = (-b + sqrt(delta)) / (2 * a);
@@ -44,24 +47,28 @@ public:
             t = t1;
 
         else 
-            return {}; 
+            return false; 
+
+        float scaleFactor = invMatrix.transformVector(ray.direction).length();
+        float globalDist = t / scaleFactor;
 
         // caso houver intersecao
+        if (t > 0.001f && t < _hit.distance) { 
 
-        Intersection intersection;
+            _hit.distance = globalDist; 
+
+            _hit.point = ray.origin + ray.direction * _hit.distance;
         
-        float len = invMatrix.transformVector(ray.direction).length();
+            cg::vec3f localPoint = localRay.origin + localRay.direction * t;
+            cg::vec3f localNormal = localPoint.normalize();
+            
+            _hit.normal = invMatrix.transposed().transformVector(localNormal).normalize();
+            
+            return true;
 
-        intersection.distance = t / len;
+        }
 
-        intersection.point = ray.origin + ray.direction * intersection.distance;
-        
-        cg::vec3f localPoint = localRay.origin + localRay.direction * t;
-        cg::vec3f localNormal = localPoint.normalize();
-        
-        intersection.normal = invMatrix.transposed().transformVector(localNormal).normalize();
-
-        return intersection;
+        return false;
 
     }
 

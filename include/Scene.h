@@ -3,6 +3,7 @@
 #include "Actor.h"
 #include "LightPBR.h"
 #include "graphics/Color.h"
+#include "geometry/BVH.h"
 #include <string>
 #include <vector>
 #include <memory>
@@ -19,20 +20,22 @@ public:
     std::vector<LightPBR> lights;
     cg::Color ambientLight{ cg::Color::darkGray }; 
 
-    const std::vector<std::unique_ptr<Actor>>& getActors() const {
+    cg::Reference<cg::BVH<Actor>> bvh;
+
+    const std::vector<cg::Reference<Actor>>& getActors() const {
         return actors;
     }
 
 private:
 
-    std::vector<std::unique_ptr<Actor>> actors;
+    std::vector<cg::Reference<Actor>> actors;
 
     void addActors() {}
 
     template<typename T, typename... Rest>
     void addActors(T* first, Rest*... rest) {
 
-        actors.push_back(std::unique_ptr<Actor>(first));
+        actors.push_back(first);
 
         addActors(rest...);
 
@@ -76,7 +79,7 @@ public:
 
     void addActor(Actor* actor) {
 
-        actors.push_back(std::unique_ptr<Actor>(actor));
+        actors.push_back(actor);
 
     }
 
@@ -84,20 +87,33 @@ public:
         return &lights[index];
     }
 
-    Intersection intersect(cg::Ray3f& ray) {
+    void buildBVH() {
+        
+        std::vector<cg::Reference<Actor>> list = actors;
 
-        Intersection closestHit;
+        bvh = new cg::BVH<Actor>(std::move(list));
+        
+    }
 
-        for (auto& actor : actors) {
+    bool intersect(cg::Ray3f& ray, Intersection& _hit) {
 
-            Intersection hit = actor->intersect(ray);
+        _hit.distance = cg::math::Limits<float>::inf();
+        _hit.object = nullptr;
 
-            if (hit && (!closestHit || hit.distance < closestHit.distance)) 
-                closestHit = hit;
+        if (bvh) 
+            return bvh->intersect(ray, _hit); 
+
+        else {
+
+            bool isHit = false;
+
+            for (auto& actor : actors) 
+                if (actor->intersect(ray, _hit)) 
+                    isHit = true;
             
-        }
+            return isHit;
 
-        return closestHit;
+        }
 
     }
 
