@@ -60,4 +60,8 @@ public:
         
     }
 
+    cg::Bounds3f bounds() const override {
+        return cg::Bounds3f{{-1, -1, -1}, {1, 1, 1}};
+    }
+
 };

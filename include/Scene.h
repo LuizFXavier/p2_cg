@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Actor.h"
-#include "graphics/Light.h"
+#include "LightPBR.h"
 #include "graphics/Color.h"
 #include <string>
 #include <vector>
@@ -14,10 +14,8 @@ public:
     cg::Camera camera;
 
     std::string name;
-    std::vector<cg::Light> lights;
+    std::vector<LightPBR> lights;
     cg::Color ambientLight{ cg::Color::darkGray }; 
-
-    cg::Color backgroundColor{ cg::Color::royalBlue };
 
     const std::vector<std::unique_ptr<Actor>>& getActors() const {
         return actors;
@@ -68,7 +66,7 @@ public:
         
     }
 
-    void addLight(cg::Light light) {
+    void addLight(LightPBR light) {
 
         lights.push_back(light);
 
@@ -80,7 +78,7 @@ public:
 
     }
 
-    cg::Light* getLight(size_t index) {
+    LightPBR* getLight(size_t index) {
         return &lights[index];
     }
 

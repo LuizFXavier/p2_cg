@@ -6,10 +6,12 @@ camera:
 lights:
 
   - position: [5, 1.01, 5]
-    color: [25, 25, 25]
+    color: [1.0, 1.0, 1.0]
+    intensity: 25
 
   - position: [5, 25, 5]
-    color: [250, 250, 250]
+    color: [1.0, 1.0, 1.0]
+    intensity: 250
 
 actors:
 
@@ -26,6 +28,15 @@ actors:
     scale: [1, 1, 1]
     material:
       diffuse: [1.0, 0.0, 0.0]
+      specular: [0.04, 0.04, 0.04]
+      shine: 0.1
+      metalness: 0.25
+
+  - type: "FederalSavingsBank"
+    position: [1, 3, -15]
+    scale: [1, 1, 1]
+    material:
+      diffuse: [0.12, 0.25, 0.87]
       specular: [0.04, 0.04, 0.04]
       shine: 0.1
       metalness: 0.25

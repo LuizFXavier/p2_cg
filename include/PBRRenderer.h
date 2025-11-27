@@ -26,7 +26,7 @@ private:
 
     const char* fragmentShader;
 
-    void setLightUniforms(const std::vector<cg::Light>& lights, const cg::mat4f& viewMatrix);
+    void setLightUniforms(const std::vector<LightPBR>& lights, const cg::mat4f& viewMatrix);
     void setMaterialUniforms(const PBRMaterial& mat);
 
 };
