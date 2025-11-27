@@ -178,6 +178,9 @@ void SceneLoader::load(const std::string& filename, SceneManager& manager) {
                         if (mat.contains("specular")) 
                             actor->material.specular = readColor(mat["specular"]);
                         
+                        if (mat.contains("ambient")) 
+                            actor->material.ambient = readColor(mat["ambient"]);
+
                         if (mat.contains("shine")) 
                             actor->material.shine = mat["shine"].get_value<float>();
 
