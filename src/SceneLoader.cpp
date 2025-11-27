@@ -122,7 +122,7 @@ void SceneLoader::load(const std::string& filename, SceneManager& manager) {
             }
 
             scene->camera.setDirectionOfProjection(-scene->camera.position());
-
+            scene->camera.setNearPlane(1.f);
         }
 
         if (root.contains("lights") && root["lights"].is_sequence()) {
