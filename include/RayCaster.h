@@ -24,7 +24,7 @@ public:
 
     Raycaster(int width, int height);
 
-    void render(Scene& scene);
+    void render(Scene& scene, bool update = false);
 
     void update();
 

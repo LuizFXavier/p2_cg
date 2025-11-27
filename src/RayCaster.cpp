@@ -83,6 +83,16 @@ Raycaster::shade(const cg::Ray3f& ray, const Intersection& hit) {
         if(shadow(lightRay))
             continue;
 
+        if(cg::math::isZero(Od.r)){
+            Od.r = Os.r * 0.8f;
+        }
+        if(cg::math::isZero(Od.g)){
+            Od.g = Os.g * 0.8f;
+        }
+        if(cg::math::isZero(Od.b)){
+            Od.b = Os.b * 0.8f;
+        }
+
         cg::vec3f R = L - (2 * (NL)) * N;
 
         float RV = R.dot(V);
@@ -100,9 +110,9 @@ Raycaster::shade(const cg::Ray3f& ray, const Intersection& hit) {
 }
 
 
-void Raycaster::render(Scene& scene) {
+void Raycaster::render(Scene& scene, bool update = false) {
 
-    if(&scene == _scene)
+    if((&scene == _scene) && !update)
         return;
 
     int w = activeBuffer()->width();
@@ -135,5 +145,5 @@ void
 Raycaster::update(){
     _swap = !_swap;
 
-    render(*_scene);
+    render(*_scene, true);
 }
