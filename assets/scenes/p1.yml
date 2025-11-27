@@ -1,0 +1,39 @@
+name: "p1"
+
+camera:
+  position: [0, 2.5, 12] 
+  fov: 45.0
+
+lights:
+  - position: [5, 25, 5]
+    color: [300, 300, 300] 
+  
+  - position: [3, 3.5, 1]
+    color: [15, 0, 0]
+
+actors:
+
+  - type: "Ground"
+    position: [3, -2, -3]
+    scale: [50, 1, 50]
+    material:
+      diffuse: [0.0, 1.0, 0.0]
+      specular: [0.0, 0.0, 0.0]
+      shine: 1
+
+  - type: "CentralSphere"
+    position: [0, 0, 0]
+    scale: [1, 1, 1]
+    material:
+      diffuse: [1.0, 0.0, 0.0]
+      specular: [0.0, 0.0, 0.0]
+      shine: 1
+
+  - type: "GoldSphere"
+    position: [2, 1, -5]
+    scale: [1.2, 1.2, 1.2]
+    material:
+      diffuse: [0.0, 0.0, 0.0]
+      specular: [1.0, 0.71, 0.29]
+      shine: 0.5
+      metalness: 1
