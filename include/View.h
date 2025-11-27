@@ -73,7 +73,7 @@ class View {
 
             }
 
-            if (ImGui::CollapsingHeader("Troca de cenas")) {
+            if (ImGui::CollapsingHeader("Troca de cenas", ImGuiTreeNodeFlags_DefaultOpen)) {
 
                 if (ImGui::Combo("cenas", &currentScene, vectocGetter, static_cast<void*>(&sceneNames), sceneNames.size())) {
 
