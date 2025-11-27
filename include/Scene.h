@@ -13,6 +13,8 @@ public:
 
     cg::Camera camera;
 
+    cg::Color backgroundColor;
+
     std::string name;
     std::vector<LightPBR> lights;
     cg::Color ambientLight{ cg::Color::darkGray }; 
@@ -39,7 +41,7 @@ private:
 public:
 
     template<typename... Actor>
-    Scene(const std::string& name, Actor*... actorList) : name(name) {
+    Scene(const std::string& name, Actor*... actorList) : name(name), backgroundColor(cg::Color{0.5f, 0.8f, 0.92f}) {
 
         addActors(actorList...);
         
