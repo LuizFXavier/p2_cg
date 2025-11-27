@@ -141,7 +141,6 @@ MainWindow::renderScene()
       
       if (raycaster->getImage())
         raycaster->getImage()->draw(0, 0);
-    
     }
 
   }

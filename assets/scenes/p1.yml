@@ -6,11 +6,15 @@ camera:
 
 lights:
   - position: [5, 25, 5]
-    color: [1.0, 1.0, 1.0] 
+    color: [0.3, 0.3, 0] 
     intensity: 300
   
   - position: [3, 3.5, 1]
-    color: [1.0, 0, 0]
+    color: [1.0, 0, 0.2]
+    intensity: 300
+
+  - position: [-5, 5, 5]
+    color: [0, 0.2, 1.0]
     intensity: 300
 
 actors:
@@ -25,20 +29,20 @@ actors:
       shine: 1
 
   - type: "CentralSphere"
-    position: [0, 0, 0]
-    scale: [1, 1, 1]
+    position: [0, 2, 0]
+    scale: [1.5, 1.5, 1.5]
     material:
-      ambient: [1.0, 0.0, 0.0]
-      diffuse: [1.0, 0.0, 0.0]
-      specular: [0.0, 0.0, 0.0]
-      shine: 1
+      ambient: [0.2, 0.05, 0.2]
+      diffuse: [0.8, 0.6, 0.5]
+      specular: [0.8, 0.6, 0.5]
+      shine: 50
 
   - type: "GoldSphere"
-    position: [2, 1, -5]
+    position: [8, 1, -10]
     scale: [1.2, 1.2, 1.2]
     material:
       ambient: [1.0, 1.0, 0.0]
       diffuse: [0.0, 0.0, 0.0]
       specular: [1.0, 0.71, 0.29]
-      shine: 0.5
+      shine: 200
       metalness: 1
