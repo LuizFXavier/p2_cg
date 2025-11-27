@@ -125,6 +125,14 @@ void main() {
 
     }
 
+    // correção de gamma
+
+    float invGamma = 1.0 / 2.2;
+
+    Lo = pow(Lo, vec3(invGamma));
+
+    clamp(Lo, 0.0, 1.0);
+
     // definindo a cor final
     fragmentColor = vec4(Lo, 1.0);
 
