@@ -1,5 +1,6 @@
 #pragma once
 
+#include "geometry/Intersection.h"
 #include "graphics/GLGraphics3.h"
 #include "math/Matrix4x4.h"
 #include "Shape3.h"
@@ -50,7 +51,7 @@ public:
 
     }
 
-    bool intersect(const cg::Ray3f& ray, Intersection& _hit) const {
+    bool intersect(const cg::Ray3f& ray, cg::Intersection& _hit) const {
 
         if (!shape) return 
             false;
@@ -67,9 +68,8 @@ public:
 
     }
     
-    // Sobrecarga simples para compatibilidade com código antigo (se precisar)
     bool intersect(const cg::Ray3f& ray) const {
-        Intersection dummy;
+        cg::Intersection dummy;
         return intersect(ray, dummy);
     }
     

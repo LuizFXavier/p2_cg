@@ -1,5 +1,7 @@
 #pragma once
 
+#include "geometry/Intersection.h"
+
 #include "Actor.h"
 #include "LightPBR.h"
 #include "graphics/Color.h"
@@ -95,7 +97,7 @@ public:
         
     }
 
-    bool intersect(cg::Ray3f& ray, Intersection& _hit) {
+    bool intersect(cg::Ray3f& ray, cg::Intersection& _hit) {
 
         _hit.distance = cg::math::Limits<float>::inf();
         _hit.object = nullptr;

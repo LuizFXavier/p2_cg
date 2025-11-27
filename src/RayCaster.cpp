@@ -71,9 +71,9 @@ Raycaster::shade(const cg::Ray3f& ray, const Intersection& hit) {
 cg::Color 
 Raycaster::phongLightModel(const cg::Ray3f& ray, const Intersection& hit){
 
-    const auto& material = hit.actor->material;
+    const auto& material = ((Actor*)hit.object)->material;
 
-    cg::Color finalColor = material.ambient * _scene->ambientLight;
+    cg::Color Lo = material.ambient * _scene->ambientLight;
 
     auto P = hit.point;
     auto V = ray.direction;
@@ -122,17 +122,17 @@ Raycaster::phongLightModel(const cg::Ray3f& ray, const Intersection& hit){
 
         cg::Color Il = light.lightColor(d);
 
-        finalColor += (Od * Il * (-NL)) + (Os * Il) * pow(-RV, Ns);
+        Lo += (Od * Il * (-NL)) + (Os * Il) * pow(-RV, Ns);
 
     }
 
-    return finalColor;
+    return Lo;
 }
 
 cg::Color 
 Raycaster::pbrLightModel(const cg::Ray3f& ray, const Intersection& hit){
     
-    const auto& material = hit.actor->material;
+    const auto& material = ((Actor*)hit.object)->material;
 
     cg::Color Lo = cg::Color{0.f, 0.f, 0.f};
 
