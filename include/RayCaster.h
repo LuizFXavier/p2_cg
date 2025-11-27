@@ -28,7 +28,7 @@ public:
         PBR
     };
 
-    int lightModel = Raycaster::PBR;
+    int lightModel = Raycaster::PHONG;
 
     Raycaster(int width, int height);
 
@@ -43,6 +43,15 @@ public:
     Actor* pick(Scene& scene, int x, int y);
 
     void setImageSize(int width, int height);
+
+    void setLightModel(Raycaster::LightModel l){
+        std::cout << "L:" << l;
+        if(l != lightModel){
+            std::cout << "Light:" << lightModel;
+            lightModel = l;
+            update();
+        }
+    }
 
 private:
 

@@ -247,30 +247,25 @@ class View {
 
                     currentMode = RenderMode::RayCasting;
 
-                    raycaster->render(*scene, true);
+                    raycaster->render(*scene);
 
                 }
 
                 if (currentMode == RenderMode::RayCasting && raycaster) {
                     
                     ImGui::Text("Modelo de iluminação:");
-                    
-                    if (ImGui::RadioButton("Phong", &raycaster->lightModel, Raycaster::LightModel::PHONG)) {
 
-                        raycaster->lightModel = Raycaster::LightModel::PHONG;
                     
-                        raycaster->render(*scene, true);
-
+                    if (ImGui::RadioButton("Phong", raycaster->lightModel == Raycaster::LightModel::PHONG)) {
+                    
+                        raycaster->setLightModel(Raycaster::LightModel::PHONG);
                     }
 
                     ImGui::SameLine(); 
 
-                    if (ImGui::RadioButton("PBR", &raycaster->lightModel, Raycaster::LightModel::PBR)) {
+                    if (ImGui::RadioButton("PBR", raycaster->lightModel == Raycaster::LightModel::PBR)) {
 
-                        raycaster->lightModel = Raycaster::LightModel::PBR;
-                    
-                        raycaster->render(*scene, true);
-
+                        raycaster->setLightModel(Raycaster::LightModel::PBR);
                     }
 
                     ImGui::Unindent();
