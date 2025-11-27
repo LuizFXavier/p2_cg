@@ -17,6 +17,8 @@ public:
     std::vector<cg::Light> lights;
     cg::Color ambientLight{ cg::Color::darkGray }; 
 
+    cg::Color backgroundColor{ cg::Color::royalBlue };
+
     const std::vector<std::unique_ptr<Actor>>& getActors() const {
         return actors;
     }
