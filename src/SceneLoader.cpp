@@ -110,6 +110,9 @@ void SceneLoader::load(const std::string& filename, SceneManager& manager) {
 
         auto* scene = manager.getScene(sceneName);
 
+        if (root.contains("background")) 
+            scene->backgroundColor = readColor(root["background"]);
+
         if (root.contains("camera")) {
 
             fkyaml::node& camNode = root["camera"];

@@ -43,6 +43,7 @@
 #include "PBRRenderer.h"
 #include "RenderMode.h"
 #include "View.h"
+#include "GameTimer.h"
 
 /////////////////////////////////////////////////////////////////////
 //
@@ -62,6 +63,8 @@ private:
   std::unique_ptr<View> view;
 
   RenderMode currentRenderMode = RenderMode::OpenGL;
+
+  GameTimer rayCastTimer{5000.0f};
 
   // Overridden method examples
   void initialize() override;

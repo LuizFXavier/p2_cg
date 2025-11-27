@@ -1,4 +1,5 @@
 name: "central_sphere"
+background: [0.5, 0.5, 1.0]
 camera:
   position: [0, 2, 15]
   fov: 45.0
@@ -19,6 +20,7 @@ actors:
     position: [0, -2, 0]
     scale: [20, 0.1, 20]
     material:
+      ambient: [0.0, 1.0, 0.0]
       diffuse: [0.0, 1.0, 0.0]
       specular: [0.04, 0.04, 0.04]
       shine: 1
@@ -27,6 +29,7 @@ actors:
     position: [0, 0, 0]
     scale: [1, 1, 1]
     material:
+      ambient: [1.0, 0.0, 0.0]
       diffuse: [1.0, 0.0, 0.0]
       specular: [0.04, 0.04, 0.04]
       shine: 0.1
@@ -36,6 +39,7 @@ actors:
     position: [1, 3, -15]
     scale: [1, 1, 1]
     material:
+      ambient: [0.12, 0.25, 0.87]
       diffuse: [0.12, 0.25, 0.87]
       specular: [0.04, 0.04, 0.04]
       shine: 0.1
