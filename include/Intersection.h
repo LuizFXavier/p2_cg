@@ -1,19 +1,16 @@
 #pragma once
 
+#include "geometry/Intersection.h" 
 #include "math/Vector3.h"
 
-class Actor; // evitar da ruim na compilação
+struct Intersection : public cg::Intersection {
 
-struct Intersection {
-    
-    float distance = -1.0f;
-    cg::vec3f point;
     cg::vec3f normal;
-
-    Actor* actor = nullptr;
-
-    explicit operator bool() const {
-        return actor != nullptr;
+    cg::vec3f point;
+    
+    Intersection() {
+        distance = cg::math::Limits<float>::inf(); 
+        object = nullptr;
     }
-
+    
 };

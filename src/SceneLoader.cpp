@@ -110,6 +110,9 @@ void SceneLoader::load(const std::string& filename, SceneManager& manager) {
 
         auto* scene = manager.getScene(sceneName);
 
+        if (root.contains("background")) 
+            scene->backgroundColor = readColor(root["background"]);
+
         if (root.contains("camera")) {
 
             fkyaml::node& camNode = root["camera"];
@@ -178,6 +181,9 @@ void SceneLoader::load(const std::string& filename, SceneManager& manager) {
                         if (mat.contains("specular")) 
                             actor->material.specular = readColor(mat["specular"]);
                         
+                        if (mat.contains("ambient")) 
+                            actor->material.ambient = readColor(mat["ambient"]);
+
                         if (mat.contains("shine")) 
                             actor->material.shine = mat["shine"].get_value<float>();
 

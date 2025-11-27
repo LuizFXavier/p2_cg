@@ -9,7 +9,7 @@
 #include "PBRMaterial.h"
 #include <memory>
 
-class Actor {
+class Actor : public cg::SharedObject {
 
 public:
 
@@ -37,20 +37,40 @@ public:
         mesh = m;
     }
 
-    Intersection intersect(cg::Ray3f& ray) {
+    cg::Bounds3f bounds() const {
 
         if (!shape)
-            return {}; 
+            return {};
 
-        auto hit = shape->intersect(ray, transform);
+        auto b = shape->bounds();
 
-        if (hit.distance > 0) {
-            hit.actor = this; 
-            return hit;       
+        b.transform(transform);
+
+        return b;
+
+    }
+
+    bool intersect(const cg::Ray3f& ray, Intersection& _hit) const {
+
+        if (!shape) return 
+            false;
+        
+        if (shape->intersect(ray, transform, _hit)) {
+
+            _hit.object = const_cast<Actor*>(this); 
+
+            return true;
+
         }
 
-        return {};
+        return false;
 
+    }
+    
+    // Sobrecarga simples para compatibilidade com código antigo (se precisar)
+    bool intersect(const cg::Ray3f& ray) const {
+        Intersection dummy;
+        return intersect(ray, dummy);
     }
     
     const cg::mat4f& getTransform() const {

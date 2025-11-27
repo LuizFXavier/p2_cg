@@ -124,7 +124,7 @@ Raycaster::intersect(cg::Ray3f& ray, Intersection& hit){
     
     bool found = false;
 
-    hit = _scene->intersect(ray);
+    bool isHit = _scene->intersect(ray, hit);
     
     return hit.operator bool();
 }

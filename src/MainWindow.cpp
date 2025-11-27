@@ -76,8 +76,12 @@ MainWindow::initialize()
 void
 MainWindow::update()
 {
+
+  bool rayAction = rayCastTimer.update(deltaTime());
   
-  sceneManager.update(deltaTime());
+  float dt = currentRenderMode == RenderMode::RayCasting ? rayCastTimer.interval : deltaTime();
+
+  sceneManager.update(dt);
 
   if (sceneManager.getActiveScene()->name == "central_sphere") {
 
@@ -85,7 +89,7 @@ MainWindow::update()
 
     cg::vec3f p = light->position();
 
-    cg::quatf rotation(5.0f, {0, 1, 0});
+    cg::quatf rotation(0.25f * dt, {0, 1, 0});
 
     p = rotation.rotate(p);
 
@@ -93,19 +97,24 @@ MainWindow::update()
 
   }
 
+  if (currentRenderMode == RenderMode::RayCasting && rayAction)
+    raycaster->update();
+
 }
 
 void
 MainWindow::renderScene()
 {
-  
-  glClearColor(0.5f, 0.8f, 0.92f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   auto* scene = sceneManager.getActiveScene();
   
   if (!scene) 
     return;
+
+  backgroundColor = scene->backgroundColor;
+  
+  glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   if (height() > 0) {
     float ratio = (float)width() / (float)height();

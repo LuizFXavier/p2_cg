@@ -15,12 +15,14 @@ class BoxShape : public Shape3 {
             _bounds.set({-1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f});
         }
 
-        Intersection intersect(cg::Ray3f& ray, cg::mat4f& transform) override {
+        bool intersect(const cg::Ray3f& ray, const cg::mat4f& transform, cg::Intersection& hit) override {
+
+            Intersection& _hit = static_cast<Intersection&>(hit);
 
             cg::mat4f invMatrix;
 
             if (!transform.inverse(invMatrix))
-                return {};
+                return false;
 
             // transformar raio para local
             cg::vec3f localOrigin = invMatrix.transform(ray.origin);
@@ -32,57 +34,57 @@ class BoxShape : public Shape3 {
 
             // não intercepta a caixa
             if (!_bounds.intersect(localRay, tMin, tMax)) 
-                return {}; 
+                return false; 
 
-            // validação se a interseção está à frente do raio
-            float t = -1.0f;
+            // decidindo valor de t
+            float t = (tMin > 0.001f) ? tMin : tMax;
 
-            if (tMin > 0.001f) 
-                t = tMin;    
+            if (t > 0.001f) {
 
-            else if (tMax > 0.001f) 
-                t = tMax;  
+                float scaleFactor = invMatrix.transformVector(ray.direction).length();
+                float globalDist = t / scaleFactor;
 
-            else 
-                return {};                    
+                if (globalDist < hit.distance) {
 
-            // calcular ponto e normal no espaço global
-            Intersection intersection;
-            
-            cg::vec3f localPoint = localRay.origin + localRay.direction * t;
+                    _hit.distance = globalDist;
+                    _hit.point = ray.origin + ray.direction * hit.distance;
+                    
+                    cg::vec3f localPoint = localRay.origin + localRay.direction * t;
 
-            intersection.point = transform.transform(localPoint);
+                    cg::vec3f localNormal = {0, 0, 0};
 
-            intersection.distance = (intersection.point - ray.origin).length();
+                    // margem de erro
+                    float epsilon = 1.5e-4f;  
 
-            cg::vec3f localNormal = {0, 0, 0};
+                    // verifica proximidade com as faces
+                    if (std::abs(localPoint.x - _bounds.min().x) < epsilon) 
+                        localNormal = {-1, 0, 0};
 
-            // margem de erro
-            float epsilon = 1.5e-4f;  
+                    else if (std::abs(localPoint.x - _bounds.max().x) < epsilon) 
+                        localNormal = {1, 0, 0};
 
-            // verifica proximidade com as faces
-            if (std::abs(localPoint.x - _bounds.min().x) < epsilon) 
-                localNormal = {-1, 0, 0};
+                    else if (std::abs(localPoint.y - _bounds.min().y) < epsilon) 
+                        localNormal = {0, -1, 0};
 
-            else if (std::abs(localPoint.x - _bounds.max().x) < epsilon) 
-                localNormal = {1, 0, 0};
+                    else if (std::abs(localPoint.y - _bounds.max().y) < epsilon) 
+                        localNormal = {0, 1, 0};
 
-            else if (std::abs(localPoint.y - _bounds.min().y) < epsilon) 
-                localNormal = {0, -1, 0};
+                    else if (std::abs(localPoint.z - _bounds.min().z) < epsilon) 
+                        localNormal = {0, 0, -1};
 
-            else if (std::abs(localPoint.y - _bounds.max().y) < epsilon) 
-                localNormal = {0, 1, 0};
+                    else if (std::abs(localPoint.z - _bounds.max().z) < epsilon) 
+                        localNormal = {0, 0, 1};
 
-            else if (std::abs(localPoint.z - _bounds.min().z) < epsilon) 
-                localNormal = {0, 0, -1};
+                    // transforma normal para global 
+                    _hit.normal = invMatrix.transposed().transformVector(localNormal).normalize();
 
-            else if (std::abs(localPoint.z - _bounds.max().z) < epsilon) 
-                localNormal = {0, 0, 1};
+                    return true;
 
-            // transforma normal para global 
-            intersection.normal = invMatrix.transposed().transformVector(localNormal).normalize();
+                }
 
-            return intersection;
+            }
+
+            return false;
 
         }
 
