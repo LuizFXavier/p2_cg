@@ -40,7 +40,7 @@
 // MainWindow implementation
 // ==========
 MainWindow::MainWindow(int width, int height):
-  Base{"P2 Wilker e José", width, height}
+  Base{"P2 Wilker & José & Luigi", width, height}
 {
 
 }
@@ -59,6 +59,7 @@ MainWindow::initialize()
 
   SceneLoader::load("../assets/scenes/central_sphere.yml", sceneManager);
   SceneLoader::load("../assets/scenes/tp1.yml", sceneManager);
+  SceneLoader::load("../assets/scenes/p1.yml", sceneManager);
 
   sceneManager.setActiveScene("tp1");
 
@@ -161,6 +162,8 @@ MainWindow::gui()
     view->materialControl();
 
   }
+
+  view->renderOptions(currentRenderMode);
 
   view->sceneControl();
 

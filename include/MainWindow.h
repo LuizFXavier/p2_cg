@@ -41,12 +41,8 @@
 #include "Intersection.h"
 #include "RayCaster.h"
 #include "PBRRenderer.h"
+#include "RenderMode.h"
 #include "View.h"
-
-enum class RenderMode {
-  OpenGL,   
-  RayCasting
-};
 
 /////////////////////////////////////////////////////////////////////
 //

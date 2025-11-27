@@ -2,6 +2,7 @@
 
 #include "imgui.h"
 #include "SceneManager.h"
+#include "RenderMode.h"
 #include <cmath>
 #include <algorithm>
 
@@ -75,7 +76,6 @@ class View {
             
                 if (ImGui::DragFloat3("Posição", (float*)&pos, 0.1f)) 
                     camera.setPosition(pos);
-                
 
                 float fov = camera.viewAngle();
 
@@ -151,7 +151,7 @@ class View {
                         };
                     
                 } else 
-                    ImGui::Text("Nenhuma luz na cena.");
+                    ImGui::Text("Nenhuma luz na cena");
                 
             }
         }
@@ -235,6 +235,20 @@ class View {
                     }
 
                 }
+
+            }
+
+        }
+     
+        void renderOptions(RenderMode& currentMode) {
+
+            if (ImGui::CollapsingHeader("Configurações de renderização", ImGuiTreeNodeFlags_DefaultOpen)) {
+                
+                if (ImGui::RadioButton("OpenGL", currentMode == RenderMode::OpenGL)) 
+                    currentMode = RenderMode::OpenGL;
+                
+                if (ImGui::RadioButton("Ray Casting", currentMode == RenderMode::RayCasting))
+                    currentMode = RenderMode::RayCasting;
 
             }
 
