@@ -7,7 +7,6 @@
 #include "geometry/Ray.h"
 #include "graphics/GLMesh.h"
 #include "PBRMaterial.h"
-
 #include <memory>
 
 class Actor {
@@ -17,7 +16,7 @@ public:
     std::string tag{"Game Object"};
 
     cg::vec3f position{0, 0, 0};
-    cg::quatf rotation{};
+    cg::quatf rotation = cg::quatf::identity();
     cg::vec3f scale{1, 1, 1};
 
     PBRMaterial material{cg::Color::white};

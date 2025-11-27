@@ -17,6 +17,7 @@
 #include "actors/PolishedGreenSphere.h"
 #include "actors/PolishedRedSphere.h"
 #include "actors/PolishedYellowSphere.h"
+#include "actors/FederalSavingsBank.h"
 
 cg::vec3f readVec3(const fkyaml::node& node) {
 
@@ -77,6 +78,9 @@ void setActorType(Actor** actor, const std::string& type) {
 
     else if (type == "PolishedYellowSphere") 
         *actor = new PolishedYellowSphere();
+
+    else if (type == "FederalSavingsBank") 
+        *actor = new FederalSavingsBank();
 
 }
 
