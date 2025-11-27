@@ -1,10 +1,11 @@
 #include "RayCaster.h"
 #include "math/Vector3.h"
 
-Raycaster::Raycaster(int width, int height) : imageBuffer(width, height) {
+Raycaster::Raycaster(int width, int height){
 
     image = std::make_unique<cg::GLImage>(width, height);
-
+    imageBuffer[0] = cg::ImageBuffer(width, height);
+    imageBuffer[1] = cg::ImageBuffer(width, height);
 }
 
 cg::Ray3f Raycaster::generateRay(const cg::Camera& camera, int x, int y) {
@@ -28,41 +29,69 @@ cg::Ray3f Raycaster::generateRay(const cg::Camera& camera, int x, int y) {
 
 }
 
-cg::Color Raycaster::shade(Scene& scene, const cg::Ray3f& ray, const Intersection& hit) {
+cg::vec3f 
+Raycaster::pixelPosition(float x, float y){
+
+    float startX = _viewport.startX, startY = _viewport.startY;
+    float dx = _viewport.dx, dy = _viewport.dy;
+    
+    return (startX + (x * dx)) * _vrc.u + (-startY + (y * dy)) * _vrc.v;
+
+    return cg::vec3f();
+}
+
+
+// Epslon necessário para evitar colisão consigo mesmo
+inline constexpr auto
+rt_eps(){
+  return 1.5e-4f;
+}
+
+cg::Color 
+Raycaster::shade(const cg::Ray3f& ray, const Intersection& hit) {
 
     const auto& material = hit.actor->material;
 
-    cg::Color finalColor = material.ambient * scene.ambientLight;
+    cg::Color finalColor = material.ambient * _scene->ambientLight;
 
-    auto V = -ray.direction;
+    auto P = hit.point;
+    auto V = ray.direction;
 
-    for (const auto& light : scene.lights) {
+    cg::vec3f N = hit.normal;
+    
+    cg::Color Od = material.diffuse;
+    cg::Color Os = material.specular;
 
-        auto L = light.position() - hit.point;
-        auto lightDistance = L.length();
+    float Ns = material.shine;
 
-        L.normalize();
+    for (const auto& light : _scene->lights) {
 
-        cg::Ray shadowRay{ hit.point + L * 0.001f, L };
-
-        Intersection shadowHit = scene.intersect(shadowRay);
-
-        if (shadowHit && shadowHit.distance < lightDistance)
+        cg::vec3f L;
+        float d;
+        
+        if (!light.lightVector(P, L, d))
+            continue;
+        
+        L = -L;
+        float NL = N.dot(L);
+        
+        if(NL > 0)
             continue;
 
-        float NdotL = std::max(hit.normal.dot(L), 0.0f);
+        cg::Ray lightRay{ hit.point - L * rt_eps(), light.position() - P};
 
-        finalColor += material.diffuse * light.color * NdotL;
+        if(shadow(lightRay))
+            continue;
 
-        if (NdotL > 0) {
+        cg::vec3f R = L - (2 * (NL)) * N;
 
-            auto R = 2.0f * hit.normal.dot(L) * hit.normal - L;
-            float RdotV = std::max(R.dot(V), 0.0f);
-            float specular = pow(RdotV, material.shine);
+        float RV = R.dot(V);
 
-            finalColor += material.specular * light.color * specular;
+        RV = std::min(0.0f, -RV);
 
-        }
+        cg::Color Il = light.lightColor(d);
+
+        finalColor += (Od * Il * (-NL)) + (Os * Il) * pow(-RV, Ns);
 
     }
 
@@ -70,32 +99,41 @@ cg::Color Raycaster::shade(Scene& scene, const cg::Ray3f& ray, const Intersectio
 
 }
 
+
 void Raycaster::render(Scene& scene) {
 
-    int w = imageBuffer.width();
-    int h = imageBuffer.height();
+    if(&scene == _scene)
+        return;
 
-    scene.camera.setAspectRatio((float)w / h);
-    scene.camera.update();
+    int w = activeBuffer()->width();
+    int h = activeBuffer()->height();
 
-    for (int y = 0; y < h; ++y)
-        for (int x = 0; x < w; ++x) {
+    _scene = &scene;
+    _camera = &(_scene->camera);
 
-            cg::Ray ray = generateRay(scene.camera, x, y);
-            Intersection hit = scene.intersect(ray);
+    setCameraConfigs();
+
+    for (int j = 0; j < h; ++j){
+
+        auto y = (float)j + 0.5f;
+
+        for (int i = 0; i < w; ++i) {
+
+            auto x = (float)i + 0.5f;
             
-            cg::Color finalColor;
-
-            if (hit)
-                finalColor = shade(scene, ray, hit);
+            cg::Color color = shoot(x, y);
             
-            else
-                finalColor = backgroundColor;
-            
-            imageBuffer(x, y) = finalColor;
-
+            (*activeBuffer())(i, j) = color;
         }
+    }
     
-    image->setData(imageBuffer);
+    image->setData(*(activeBuffer()));
     
+}
+
+void
+Raycaster::update(){
+    _swap = !_swap;
+
+    render(*_scene);
 }
