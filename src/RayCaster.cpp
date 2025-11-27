@@ -245,3 +245,28 @@ Raycaster::update(){
 
     render(*_scene, true);
 }
+
+Actor* Raycaster::pick(Scene& scene, int x, int y) {
+    
+    _scene = &scene;
+    _camera = &(_scene->camera);
+    
+    setCameraConfigs(); 
+
+    float px = (float)x + 0.5f;
+    float py = (float)y + 0.5f;
+
+    setPixelRay(px, py); 
+    
+    Intersection hit; 
+
+    hit.distance = cg::math::Limits<float>::inf();
+
+    hit.object = nullptr;
+
+    if (_scene->intersect(_pixelRay, hit)) 
+        return (Actor*)hit.object; 
+
+    return nullptr; 
+
+}

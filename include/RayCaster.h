@@ -40,6 +40,10 @@ public:
         return image.get();
     }
 
+    Actor* pick(Scene& scene, int x, int y);
+
+    void setImageSize(int width, int height);
+
 private:
 
     std::unique_ptr<cg::GLImage> image;

@@ -179,3 +179,43 @@ MainWindow::gui()
   ImGui::End();
 
 }
+
+bool MainWindow::onMouseLeftPress(int x, int y) {
+
+  if (ImGui::GetIO().WantCaptureMouse)
+    return false; 
+
+  auto* scene = sceneManager.getActiveScene();
+
+  if (!scene) 
+    return false;
+
+  if (raycaster) {
+
+    raycaster->setImageSize(width(), height());
+    
+    Actor* clickedActor = raycaster->pick(*scene, x, y);
+
+    if (clickedActor)  
+      view->setSelectedActor(clickedActor);
+
+  }
+
+  return true; 
+
+}
+
+void Raycaster::setImageSize(int width, int height) {
+    
+  if (image->width() != width || image->height() != height) {
+
+    image = std::make_unique<cg::GLImage>(width, height);
+
+    imageBuffer[0] = cg::ImageBuffer(width, height);
+    imageBuffer[1] = cg::ImageBuffer(width, height);
+    
+    _viewport = Viewport{}; 
+
+  }
+
+}

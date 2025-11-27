@@ -53,7 +53,7 @@ public:
         float globalDist = t / scaleFactor;
 
         // caso houver intersecao
-        if (t > 0.001f && t < _hit.distance) { 
+        if (globalDist < _hit.distance) { 
 
             _hit.distance = globalDist; 
 

@@ -12,6 +12,8 @@ class View {
 
         SceneManager* manager;
 
+        int selectedActorIndex = 0;
+
         // callback que precisa pra funcionar o seletor
         static bool vectocGetter(void* vec, int i, const char** outText) {
 
@@ -30,6 +32,27 @@ class View {
     public:
 
         View(SceneManager* manager): manager{manager} {}
+
+        void setSelectedActor(Actor* actor) {
+
+            auto* scene = manager->getActiveScene();
+
+            if (!scene) 
+                return;
+
+            const auto& actors = scene->getActors();
+
+            for (int i = 0; i < actors.size(); ++i) 
+                if (actors[i]->tag == actor->tag) {
+
+                    selectedActorIndex = i;
+
+                    return;
+
+                }
+
+            
+        }
 
         void sceneControl() {
 
@@ -134,8 +157,6 @@ class View {
 
             if (ImGui::CollapsingHeader("Materiais", ImGuiTreeNodeFlags_DefaultOpen)) {
 
-                static int selectedActor = 0;
-
                 auto* scene = manager->getActiveScene();
                 
                 auto& actors = scene->getActors(); 
@@ -144,18 +165,18 @@ class View {
 
                 if (numActors > 0) {
                     
-                    std::string label = actors[selectedActor]->tag;
+                    std::string label = actors[selectedActorIndex]->tag;
 
                     if (ImGui::BeginCombo("Selecionar Ator", label.c_str())) {
 
                         for (int i = 0; i < numActors; i++) {
 
-                            bool isSelected = (selectedActor == i);
+                            bool isSelected = (selectedActorIndex == i);
 
                             std::string itemLabel = actors[i]->tag;
                             
                             if (ImGui::Selectable(itemLabel.c_str(), isSelected)) 
-                                selectedActor = i;
+                                selectedActorIndex = i;
                             
                             if (isSelected) 
                                 ImGui::SetItemDefaultFocus();
@@ -166,9 +187,9 @@ class View {
 
                     }
 
-                    if (selectedActor >= 0 && selectedActor < numActors) {
+                    if (selectedActorIndex >= 0 && selectedActorIndex < numActors) {
 
-                        auto& actor = actors[selectedActor];
+                        auto& actor = actors[selectedActorIndex];
 
                         auto& mat = actor->material; 
 

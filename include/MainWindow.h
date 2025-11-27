@@ -64,7 +64,7 @@ private:
 
   RenderMode currentRenderMode = RenderMode::OpenGL;
 
-  GameTimer rayCastTimer{250.0f};
+  GameTimer rayCastTimer{5000.0f};
 
   // Overridden method examples
   void initialize() override;
@@ -72,6 +72,10 @@ private:
   void renderScene() override;
   bool keyInputEvent(int, int, int) override;
   void gui() override;
+
+  protected:
+  
+    bool onMouseLeftPress(int x, int y) override;
 
 }; // MainWindow
 
