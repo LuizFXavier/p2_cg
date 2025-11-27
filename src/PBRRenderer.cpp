@@ -3,7 +3,7 @@
 #include "graphics/Camera.h"
 #include "graphics/GLRenderWindow3.h"
 #include "FileReader.h"
-#include "graphics/Light.h"
+#include "LightPBR.h"
 #include "vector"
 
 PBRRenderer::PBRRenderer() {
@@ -78,7 +78,7 @@ void PBRRenderer::render(const Scene& scene) {
 
 }
 
-void PBRRenderer::setLightUniforms(const std::vector<cg::Light>& lights, const cg::mat4f& viewMatrix) {
+void PBRRenderer::setLightUniforms(const std::vector<LightPBR>& lights, const cg::mat4f& viewMatrix) {
 
     int count = 0;
 
@@ -96,9 +96,9 @@ void PBRRenderer::setLightUniforms(const std::vector<cg::Light>& lights, const c
         std::string base = "uLights[" + std::to_string(count) + "]";
 
         cg::vec4f lightColor ={
-            light.color.r, 
-            light.color.g, 
-            light.color.b, 
+            light.finalColor.r, 
+            light.finalColor.g, 
+            light.finalColor.b, 
             1.0f
         };
 

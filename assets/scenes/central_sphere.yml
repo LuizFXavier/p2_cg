@@ -6,10 +6,12 @@ camera:
 lights:
 
   - position: [5, 1.01, 5]
-    color: [25, 25, 25]
+    color: [1.0, 1.0, 1.0]
+    intensity: 25
 
   - position: [5, 25, 5]
-    color: [250, 250, 250]
+    color: [1.0, 1.0, 1.0]
+    intensity: 250
 
 actors:
 

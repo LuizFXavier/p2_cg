@@ -2,8 +2,6 @@
 #include "SphereShape.h" 
 #include "graphics/GLMesh.h"
 #include "graphics/GLGraphics3.h"
-#include <fstream>
-#include <iostream>
 #include "fkYAML/node.hpp"
 #include "actors/Ground.h"
 #include "actors/CentralSphere.h"
@@ -18,6 +16,8 @@
 #include "actors/PolishedRedSphere.h"
 #include "actors/PolishedYellowSphere.h"
 #include "actors/FederalSavingsBank.h"
+#include <fstream>
+#include <iostream>
 
 cg::vec3f readVec3(const fkyaml::node& node) {
 
@@ -133,14 +133,17 @@ void SceneLoader::load(const std::string& filename, SceneManager& manager) {
 
             for (auto& l : root["lights"]) {
 
-                cg::Light light;
+                LightPBR light;
 
-                cg::vec3f pos = readVec3(l["position"]);
-                cg::Color color = readColor(l["color"]);
+                if (l.contains("position")) 
+                    light.setPosition(readVec3(l["position"]));
 
-                light.setPosition(pos);
-                light.color = color;
-
+                if (l.contains("color")) 
+                    light.setBaseColor(readColor(l["color"]));
+              
+                if (l.contains("intensity"))
+                    light.setIntensity(l["intensity"].get_value<float>());
+                
                 scene->addLight(light);
 
             }

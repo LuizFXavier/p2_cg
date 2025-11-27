@@ -31,10 +31,10 @@ public:
 
         if (it != scenes.end()) {
 
-            cg::Light light;
+            LightPBR light;
 
             light.setPosition(position);
-            light.color = cg::Color::white;
+            light.setBaseColor(cg::Color::white);
 
             it->second.get()->addLight(light);
 

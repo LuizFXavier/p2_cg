@@ -109,46 +109,19 @@ class View {
                     bool selectionChanged = ImGui::SliderInt("Selecionar Luz", &selectedLight, 0, numLights - 1);
                     
                     auto& light = scene->lights[selectedLight];
-
-                    static cg::vec3f uiColor;
-                    static float uiIntensity;
-                    static bool initialized = false;
-
-                    if (!initialized || selectionChanged) {
-
-                        cg::vec3f rawColor = {light.color.r, light.color.g, light.color.b};
-
-                        uiIntensity = std::max({rawColor.x, rawColor.y, rawColor.z});
-                        
-                        if (uiIntensity > 0.001f) 
-                            uiColor = rawColor * (1.0f / uiIntensity);
-
-                        else {
-                            uiColor = {1.0f, 1.0f, 1.0f}; 
-                            uiIntensity = 0.0f;
-                        }
-
-                        initialized = true;
-
-                    }
-                    
                     
                     cg::vec3f lPos = light.position();
+                    cg::vec3f baseRGB = {light.color.r, light.color.g, light.color.b};
+                    float intensity = light.intensity;
 
                     if (ImGui::DragFloat3("Posição##L", (float*)&lPos, 0.1f)) 
                         light.setPosition(lPos);
-                    
 
-                    bool colorChanged = ImGui::ColorEdit3("Cor##L", (float*)&uiColor);
+                    if (ImGui::ColorEdit3("Cor Base", (float*)&baseRGB)) 
+                        light.setBaseColor(cg::Color{baseRGB.x, baseRGB.y, baseRGB.z});
                     
-                    bool intensityChanged = ImGui::DragFloat("Intensidade", &uiIntensity, 1.0f, 0.0f, 10000.0f);
-
-                    if (colorChanged || intensityChanged) 
-                        light.color = cg::Color{
-                            uiColor.x * uiIntensity,
-                            uiColor.y * uiIntensity,
-                            uiColor.z * uiIntensity
-                        };
+                    if (ImGui::DragFloat("Intensidade ", &intensity, 1.0f, 0.0f, 1000.0f)) 
+                        light.setIntensity(intensity);
                     
                 } else 
                     ImGui::Text("Nenhuma luz na cena");
