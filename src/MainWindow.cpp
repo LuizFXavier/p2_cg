@@ -97,9 +97,9 @@ MainWindow::update()
 
   }
 
-  if (currentRenderMode == RenderMode::RayCasting && rayAction)
+  /*if (currentRenderMode == RenderMode::RayCasting && rayAction)
     raycaster->update();
-
+*/
 }
 
 void
@@ -172,7 +172,7 @@ MainWindow::gui()
 
   }
 
-  view->renderOptions(currentRenderMode);
+  view->renderOptions(currentRenderMode, raycaster.get());
 
   view->sceneControl();
 

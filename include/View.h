@@ -233,6 +233,54 @@ class View {
             }
 
         }
+
+        void renderOptions(RenderMode& currentMode, Raycaster* raycaster) {
+
+            if (ImGui::CollapsingHeader("Configurações de renderização", ImGuiTreeNodeFlags_DefaultOpen)) {
+                
+                auto* scene = manager->getActiveScene();
+
+                if (ImGui::RadioButton("OpenGL", currentMode == RenderMode::OpenGL)) 
+                    currentMode = RenderMode::OpenGL;
+                
+                if (ImGui::RadioButton("Ray Casting", currentMode == RenderMode::RayCasting)) {
+
+                    currentMode = RenderMode::RayCasting;
+
+                    raycaster->render(*scene, true);
+
+                }
+
+                if (currentMode == RenderMode::RayCasting && raycaster) {
+                    
+                    ImGui::Text("Modelo de iluminação:");
+                    
+                    if (ImGui::RadioButton("Phong", &raycaster->lightModel, Raycaster::LightModel::PHONG)) {
+
+                        raycaster->lightModel = Raycaster::LightModel::PHONG;
+                    
+                        raycaster->render(*scene, true);
+
+                    }
+
+                    ImGui::SameLine(); 
+
+                    if (ImGui::RadioButton("PBR", &raycaster->lightModel, Raycaster::LightModel::PBR)) {
+
+                        raycaster->lightModel = Raycaster::LightModel::PBR;
+                    
+                        raycaster->render(*scene, true);
+
+                    }
+
+                    ImGui::Unindent();
+
+                }
+
+            }
+                
+
+        }
      
         void renderOptions(RenderMode& currentMode) {
 
