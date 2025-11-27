@@ -64,7 +64,7 @@ private:
 
   RenderMode currentRenderMode = RenderMode::OpenGL;
 
-  GameTimer rayCastTimer{5000.0f};
+  GameTimer rayCastTimer{250.0f};
 
   // Overridden method examples
   void initialize() override;

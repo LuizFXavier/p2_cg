@@ -110,7 +110,7 @@ Raycaster::shade(const cg::Ray3f& ray, const Intersection& hit) {
 }
 
 
-void Raycaster::render(Scene& scene, bool update = false) {
+void Raycaster::render(Scene& scene, bool update) {
 
     if((&scene == _scene) && !update)
         return;
