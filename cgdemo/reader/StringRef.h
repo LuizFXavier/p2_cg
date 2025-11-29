@@ -1,6 +1,6 @@
 //[]---------------------------------------------------------------[]
 //|                                                                 |
-//| Copyright (C) 2022 Paulo Pagliosa.                              |
+//| Copyright (C) 2007, 2022 Paulo Pagliosa.                        |
 //|                                                                 |
 //| This software is provided 'as-is', without any express or       |
 //| implied warranty. In no event will the authors be held liable   |
@@ -23,19 +23,54 @@
 //|                                                                 |
 //[]---------------------------------------------------------------[]
 //
-// OVERVIEW: Main.cpp
+// OVERVIEW: StringRef.h
 // ========
-// Main function for cg template.
+// Class definition for string reference.
 //
 // Author: Paulo Pagliosa
-// Last revision: 07/11/2022
+// Last revision: 07/02/2022
 
-#include "graphics/Application.h"
-#include "MainWindow.h"
+#ifndef __StringRef_h
+#define __StringRef_h
 
-int
-main(int argc, char** argv)
+#include <string>
+
+namespace cg::parser
+{ // begin namespace cg::parser
+
+using String = std::string;
+
+
+///////////////////////////////////////////////////////////////////
+//
+// StringRef: string ref class
+// =========
+class StringRef
 {
+public:
+  const char* begin;
+  size_t count;
 
-  return cg::Application{new MainWindow{1280, 720}}.run(argc, argv);
-}
+  void set(const char* begin, size_t count)
+  {
+    this->begin = begin;
+    this->count = count;
+  }
+
+  StringRef& operator =(const String& s)
+  {
+    begin = s.data();
+    count = s.length();
+    return *this;
+  }
+
+  auto toString() const
+  {
+    return String{begin, count};
+  }
+
+}; // StringRef
+
+} // end namespace cg::parser
+
+#endif // __StringRef_h

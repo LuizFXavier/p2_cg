@@ -1,6 +1,6 @@
 //[]---------------------------------------------------------------[]
 //|                                                                 |
-//| Copyright (C) 2022 Paulo Pagliosa.                              |
+//| Copyright (C) 2007, 2022 Paulo Pagliosa.                        |
 //|                                                                 |
 //| This software is provided 'as-is', without any express or       |
 //| implied warranty. In no event will the authors be held liable   |
@@ -23,19 +23,73 @@
 //|                                                                 |
 //[]---------------------------------------------------------------[]
 //
-// OVERVIEW: Main.cpp
+// OVERVIEW: Buffer.h
 // ========
-// Main function for cg template.
+// Class definition for generic input buffer.
 //
 // Author: Paulo Pagliosa
-// Last revision: 07/11/2022
+// Last revision: 10/02/2022
 
-#include "graphics/Application.h"
-#include "MainWindow.h"
+#ifndef __Buffer_h
+#define __Buffer_h
 
-int
-main(int argc, char** argv)
+#include "core/SharedObject.h"
+#include "StringRef.h"
+
+namespace cg::parser
+{ // begin namespace cg::parser
+
+
+/////////////////////////////////////////////////////////////////////
+//
+// Buffer: generic input buffer class
+// ======
+class Buffer: public SharedObject
 {
+public:
+  ~Buffer() override;
 
-  return cg::Application{new MainWindow{1280, 720}}.run(argc, argv);
-}
+  Buffer(bool shouldDelete = true);
+
+  virtual String name() const = 0;
+
+  String lexeme();
+
+  void beginLexeme()
+  {
+    _lexemeBegin = _current;
+  }
+
+  char operator *() const
+  {
+    return *_current;
+  }
+
+  char operator ++()
+  {
+    return advance();
+  }
+
+  char operator ++(int)
+  {
+    auto temp = *_current;
+
+    advance();
+    return temp;
+  }
+
+protected:
+  bool _shouldDelete;
+  bool _eofRead;
+  char* _begin;
+  char* _end;
+  char* _current;
+  char* _lexemeBegin;
+
+  virtual char advance() = 0;
+
+}; // Buffer
+
+} // end namespace cg::parser
+
+#endif // __Buffer_h

@@ -8,9 +8,9 @@
 
 PBRRenderer::PBRRenderer() {
 
-    fragmentShader = FileReader::read("../assets/shaders/pbr/pbr.frag");
+    fragmentShader = FileReader::read("assets/shaders/pbr/pbr.frag");
 
-    vertexShader = FileReader::read("../assets/shaders/pbr/pbr.vert");
+    vertexShader = FileReader::read("assets/shaders/pbr/pbr.vert");
 
 }
 

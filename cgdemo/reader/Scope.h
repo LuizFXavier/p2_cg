@@ -23,19 +23,68 @@
 //|                                                                 |
 //[]---------------------------------------------------------------[]
 //
-// OVERVIEW: Main.cpp
+// OVERVIEW: Scope.h
 // ========
-// Main function for cg template.
+// Class definition for simple scope.
 //
 // Author: Paulo Pagliosa
-// Last revision: 07/11/2022
+// Last revision: 03/02/2022
 
-#include "graphics/Application.h"
-#include "MainWindow.h"
+#ifndef __Scope_h
+#define __Scope_h
 
-int
-main(int argc, char** argv)
+#include "Expression.h"
+#include <map>
+
+namespace cg::parser
+{ // begin namespace cg::parser
+
+
+/////////////////////////////////////////////////////////////////////
+//
+// Scope: simple scope class
+// =====
+class Scope
 {
+public:
+  Scope() = default;
 
-  return cg::Application{new MainWindow{1280, 720}}.run(argc, argv);
-}
+  Scope(Scope& parent):
+    _parent{&parent}
+  {
+    // do nothing
+  }
+
+  auto parent() const
+  {
+    return _parent;
+  }
+
+  bool lookup(const std::string&, Expression&) const;
+
+  auto contains(const std::string& name) const
+  {
+    return _symbols.find(name) != _symbols.end();
+  }
+
+  void insert(const std::string& name, const Expression& e)
+  {
+    _symbols.emplace(name, e);
+  }
+
+  void clear()
+  {
+    _symbols.clear();
+  }
+
+private:
+  using SymbolTable = std::map<std::string, Expression>;
+
+  SymbolTable _symbols;
+  Scope* _parent{};
+
+}; // Scope
+
+} // end namespace cg::parser
+
+#endif // __Scope_h

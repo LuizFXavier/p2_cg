@@ -23,19 +23,30 @@
 //|                                                                 |
 //[]---------------------------------------------------------------[]
 //
-// OVERVIEW: Main.cpp
+// OVERVIEW: Scope.cpp
 // ========
-// Main function for cg template.
+// Source file for simple scope.
 //
 // Author: Paulo Pagliosa
-// Last revision: 07/11/2022
+// Last revision: 10/02/2022
 
-#include "graphics/Application.h"
-#include "MainWindow.h"
+#include "Scope.h"
 
-int
-main(int argc, char** argv)
+namespace cg::parser
+{ // begin namespace cg::parser
+
+
+/////////////////////////////////////////////////////////////////////
+//
+// Scope implementation
+// =====
+bool
+Scope::lookup(const std::string& name, Expression& e) const
 {
-
-  return cg::Application{new MainWindow{1280, 720}}.run(argc, argv);
+  for (auto scope = this; scope != nullptr; scope = scope->_parent)
+    if (auto it = scope->_symbols.find(name); it != scope->_symbols.end())
+      return void(e = it->second), true;
+  return false;
 }
+
+} // end namespace cg::parser

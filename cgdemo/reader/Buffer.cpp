@@ -1,6 +1,6 @@
 //[]---------------------------------------------------------------[]
 //|                                                                 |
-//| Copyright (C) 2022 Paulo Pagliosa.                              |
+//| Copyright (C) 2007, 2022 Paulo Pagliosa.                        |
 //|                                                                 |
 //| This software is provided 'as-is', without any express or       |
 //| implied warranty. In no event will the authors be held liable   |
@@ -23,19 +23,43 @@
 //|                                                                 |
 //[]---------------------------------------------------------------[]
 //
-// OVERVIEW: Main.cpp
+// OVERVIEW: Buffer.cpp
 // ========
-// Main function for cg template.
+// Source file for generic input buffer.
 //
 // Author: Paulo Pagliosa
-// Last revision: 07/11/2022
+// Last revision: 07/02/2022
 
-#include "graphics/Application.h"
-#include "MainWindow.h"
+#include "Buffer.h"
 
-int
-main(int argc, char** argv)
+namespace cg::parser
+{ // begin namespace cg::parser
+
+
+/////////////////////////////////////////////////////////////////////
+//
+// Buffer implementation
+// ======
+Buffer::Buffer(bool shouldDelete):
+  _eofRead{false},
+  _shouldDelete{shouldDelete}
 {
-
-  return cg::Application{new MainWindow{1280, 720}}.run(argc, argv);
+  _begin = _current = _end = _lexemeBegin = nullptr;
 }
+
+Buffer::~Buffer()
+{
+  if (_shouldDelete)
+    delete []_begin;
+}
+
+String
+Buffer::lexeme()
+{
+  String lexeme{_lexemeBegin, size_t(_current - _lexemeBegin)};
+
+  _lexemeBegin = nullptr;
+  return lexeme;
+}
+
+} // end namespace cg::parser

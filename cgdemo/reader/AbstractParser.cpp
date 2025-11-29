@@ -1,6 +1,6 @@
 //[]---------------------------------------------------------------[]
 //|                                                                 |
-//| Copyright (C) 2022 Paulo Pagliosa.                              |
+//| Copyright (C) 2007, 2022 Paulo Pagliosa.                        |
 //|                                                                 |
 //| This software is provided 'as-is', without any express or       |
 //| implied warranty. In no event will the authors be held liable   |
@@ -23,19 +23,82 @@
 //|                                                                 |
 //[]---------------------------------------------------------------[]
 //
-// OVERVIEW: Main.cpp
+// OVERVIEW: AbstractParser.cpp
 // ========
-// Main function for cg template.
+// Source file for generic LL(n) parser.
 //
 // Author: Paulo Pagliosa
-// Last revision: 07/11/2022
+// Last revision: 07/02/2022
 
-#include "graphics/Application.h"
-#include "MainWindow.h"
+#include "AbstractParser.h"
 
-int
-main(int argc, char** argv)
+namespace cg::parser
+{ // begin namespace cg::parser
+
+
+/////////////////////////////////////////////////////////////////////
+//
+// AbstractParser implementation
+// ==============
+void
+AbstractParser::setInput(Buffer& input)
 {
-
-  return cg::Application{new MainWindow{1280, 720}}.run(argc, argv);
+  _input = &input;
+  _filename = _input->name();
 }
+
+void
+AbstractParser::execute()
+{
+  if (_input != nullptr)
+  {
+    // init compilation unit
+    initCompilationUnit();
+    // start parser
+    _lineNumber = 1;
+    _token = nextToken();
+    start();
+    // terminate compilation unit
+    terminateCompilationUnit();
+  }
+}
+
+KeywordTableEntry*
+AbstractParser::searchKeyword(KeywordTableEntry* k, const String& name) const
+{
+  for (; k->name != nullptr; k++)
+    if (name == k->name)
+      return k;
+  return nullptr;
+}
+
+KeywordTableEntry*
+AbstractParser::findKeyword(const String&) const
+{
+  return nullptr;
+}
+
+String
+AbstractParser::errorMessageFormat(const char* msg) const
+{
+  constexpr auto errMsg = "Error %s %d: %s\n";
+  constexpr auto maxLen = 1024;
+  char fmt[maxLen];
+
+  snprintf(fmt, maxLen, errMsg, _filename.c_str(), _lineNumber, msg);
+  return fmt;
+}
+
+void
+AbstractParser::initCompilationUnit()
+{
+  // do nothing
+}
+
+void
+AbstractParser::terminateCompilationUnit()
+{
+  // do nothing
+}
+
+} // end namespace cg::parser

@@ -1,6 +1,6 @@
 //[]---------------------------------------------------------------[]
 //|                                                                 |
-//| Copyright (C) 2022 Paulo Pagliosa.                              |
+//| Copyright (C) 2007, 2023 Paulo Pagliosa.                        |
 //|                                                                 |
 //| This software is provided 'as-is', without any express or       |
 //| implied warranty. In no event will the authors be held liable   |
@@ -23,60 +23,71 @@
 //|                                                                 |
 //[]---------------------------------------------------------------[]
 //
-// OVERVIEW: MainWindow.h
+// OVERVIEW: FileBuffer.h
 // ========
-// Class definition for cg template window.
+// Class definition for file buffer.
 //
 // Author: Paulo Pagliosa
-// Last revision: 07/11/2022
+// Last revision: 06/07/2023
 
-#ifndef __MainWindow_h
-#define __MainWindow_h
+#ifndef __FileBuffer_h
+#define __FileBuffer_h
 
-#include "graphics/GLRenderWindow3.h"
-#include "SceneManager.h"
-#include "graphics/Camera.h"
-#include "graphics/Color.h"
-#include "graphics/GLImage.h"
-#include "Intersection.h"
-#include "RayCaster.h"
-#include "PBRRenderer.h"
-#include "RenderMode.h"
-#include "View.h"
-#include "GameTimer.h"
+#include "Buffer.h"
+#include <filesystem>
+#include <fstream>
+
+namespace cg
+{ // begin namespace cg
+
+namespace fs = std::filesystem;
+
+namespace parser
+{ // begin namespace parser
+
 
 /////////////////////////////////////////////////////////////////////
 //
-// MainWindow: template main window class
+// FileBuffer: file buffer class
 // ==========
-class MainWindow final: public cg::GLRenderWindow3
+class FileBuffer: public Buffer
 {
 public:
-  MainWindow(int width, int height);
+  FileBuffer(const fs::path& path);
+
+  String name() const override;
+
+  const auto& path() const
+  {
+    return _path;
+  }
+
+  const auto& file() const
+  {
+    return _file;
+  }
 
 private:
-  using Base = cg::GLRenderWindow3;
+  fs::path _path;
+  std::ifstream _file;
+  size_t _size;
 
-  SceneManager sceneManager;
-  std::unique_ptr<Raycaster> raycaster;
-  std::unique_ptr<PBRRenderer> pbrRenderer; 
-  std::unique_ptr<View> view;
+  char advance() override;
 
-  RenderMode currentRenderMode = RenderMode::OpenGL;
+  void flush();
+  void fill(char*, size_t = 0);
 
-  GameTimer rayCastTimer{5000.0f};
+  auto endBuffer() const
+  {
+    return _begin + _size;
+  }
 
-  // Overridden method examples
-  void initialize() override;
-  void update() override;
-  void renderScene() override;
-  bool keyInputEvent(int, int, int) override;
-  void gui() override;
+}; // FileBuffer
 
-  protected:
-  
-    bool onMouseLeftPress(int x, int y) override;
+using FileBufferRef = Reference<FileBuffer>;
 
-}; // MainWindow
+} // end namespace parser
 
-#endif // __MainWindow_h
+} // end namespace cg
+
+#endif // __FileBuffer_h
