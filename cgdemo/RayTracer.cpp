@@ -336,6 +336,9 @@ RayTracer::shade(const Ray3f& ray,
       color += m->specular * trace(reflectionRay, level + 1, weight);
     }
   }
+  if (m->transparency != Color::black){
+    
+  }
   return color;
 }
 
@@ -357,7 +360,20 @@ RayTracer::shadow(const Ray3f& ray)
 //|  @return true if the ray intersects an object       |
 //[]---------------------------------------------------[]
 {
-  return _bvh->intersect(ray) ? ++_numberOfHits : false;
+  cg::Intersection hit;
+
+  if(!_bvh->intersect(ray, hit)){
+    return false;
+  }
+
+  auto primitive = (Primitive*)hit.object;
+  
+  auto c = primitive->material()->transparency;
+
+  if(c != Color::black){
+    return ++_numberOfHits;
+  }
+  return false;
 }
 
 } // end namespace cg
