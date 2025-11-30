@@ -1,0 +1,72 @@
+material "Default"
+{
+  ambient rgb(0.763713,0.238459,0.238459)
+  diffuse rgb(0.932489,0.31083,0.31083)
+  spot rgb(0.995781,0.819313,0.819313)
+  shine 30
+  specular rgb(1,1,1)
+  transparency rgb(0,0,0)
+  ior 1
+}
+material "Material 1"
+{
+  ambient rgb(0.309495,0.309495,0.691983)
+  diffuse rgb(0.460663,0.492012,0.873418)
+  spot rgb(0.758212,0.769813,0.987342)
+  shine 100
+  specular rgb(1,1,1)
+  transparency rgb(0,0,0)
+  ior 1
+}
+scene "Scene 1"
+{
+  environment
+  {
+    ambient rgb(1,1,1)
+    background rgb(0.341772,0.331678,0.331678)
+  }
+  object "Main Camera"
+  {
+    transform
+    {
+      position <0,0,10>
+    }
+    camera
+    {
+      perspective
+      angle 60
+      aspect 1.77778
+      depth vec2(0.01,1000)
+    }
+  }
+  object "Red"
+  {
+    transform
+    {
+      // identity
+    }
+    mesh "Sphere" material "Default"
+  }
+  object "Light 1"
+  {
+    transform
+    {
+      position <-5,0,5>
+    }
+    light
+    {
+      point
+      range 0
+      falloff 0
+      color rgb(1,1,1)
+    }
+  }
+  object "Blue"
+  {
+    transform
+    {
+      position <5,0,-5>
+    }
+    mesh "Sphere" material "Material 1"
+  }
+}
