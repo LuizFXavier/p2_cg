@@ -214,7 +214,7 @@ RayTracer::shoot(float x, float y)
 }
 
 Color
-RayTracer::trace(const Ray3f& ray, uint32_t level, float weight)
+RayTracer::trace(const Ray3f& ray, uint32_t level, float weight, float ior)
 //[]---------------------------------------------------[]
 //|  Trace a ray                                        |
 //|  @param the ray                                     |
@@ -229,7 +229,7 @@ RayTracer::trace(const Ray3f& ray, uint32_t level, float weight)
 
   Intersection hit;
 
-  return intersect(ray, hit) ? shade(ray, hit, level, weight) : background();
+  return intersect(ray, hit) ? shade(ray, hit, level, weight, ior) : background();
 }
 
 inline constexpr auto
@@ -262,7 +262,8 @@ Color
 RayTracer::shade(const Ray3f& ray,
   Intersection& hit,
   uint32_t level,
-  float weight)
+  float weight,
+  float ior)
 //[]---------------------------------------------------[]
 //|  Shade a point P                                    |
 //|  @param the ray (input)                             |
@@ -288,6 +289,9 @@ RayTracer::shade(const Ray3f& ray,
   // Start with ambient lighting
   auto m = primitive->material();
   auto color = _scene->ambientLight * m->ambient;
+  Color reflectedColor{0.f, 0.f, 0.f};
+  Color refractedColor{0.f, 0.f, 0.f};
+  float reflectRatio = 1.f;
   auto P = ray(hit.distance);
 
   // Compute direct lighting
@@ -324,21 +328,53 @@ RayTracer::shade(const Ray3f& ray,
     color += lc * m->diffuse * NL;
     if (m->shine <= 0 || (d = R.dot(L)) <= 0)
       continue;
-    color += lc * m->spot * pow(d, m->shine);
+    reflectedColor += lc * m->spot * pow(d, m->shine);
   }
   // Compute specular reflection
   if (m->specular != Color::black)
   {
-    weight *= maxRGB(m->specular);
-    if (weight > _minWeight && level < _maxRecursionLevel)
+    float w = weight * maxRGB(m->specular);
+    if (w > _minWeight && level < _maxRecursionLevel)
     {
       auto reflectionRay = Ray3f{P + R * rt_eps(), R};
-      color += m->specular * trace(reflectionRay, level + 1, weight);
+      reflectedColor += m->specular * trace(reflectionRay, level + 1, w);
     }
   }
-  if (m->transparency != Color::black){
-    
+
+  // Compute refraction
+  if (m->transparency != Color::black && !cg::math::isZero(m->ior)){
+    // std::cout << "Talvez :) " << "\n";
+    float w = weight * maxRGB(m->transparency);
+
+    if (w > _minWeight && level < _maxRecursionLevel)
+    {
+      float n1 = ior;
+      float n2 = m->ior;
+      float n12 = n1 / n2;
+      
+      auto cosIn = - ray.direction.dot(N);
+      cosIn = clamp(cosIn, -1.f, 1.f);
+
+      auto cosOut = 1 - (n12 * n12) * (1 - cosIn * cosIn);
+      
+      if(!cg::math::isNegative(cosOut)){
+        // std::cout << "Transparente :) " << C2 << "\n";
+        cosOut = sqrt(cosOut);
+        auto L = ray.direction;
+        // auto transparencyRay = Ray3f{P, n12 * L + (n12 * cosIn - cosOut) * N};
+        auto direction = n12 * L + (n12 * cosIn - cosOut) * N;
+        auto transparencyRay = Ray3f{P + direction * rt_eps(), direction};
+
+        float r0 = pow((ior - m->ior) / (ior + m->ior), 2);
+
+        reflectRatio = r0 + (1 - r0) * pow(1 - cosIn, 5);
+        // std::cout << reflectRatio << "\n";
+        refractedColor = m->transparency * trace(transparencyRay, level + 1, w);
+      }
+    }
   }
+  color += reflectedColor * reflectRatio + refractedColor * (1.f - reflectRatio);
+
   return color;
 }
 
@@ -361,7 +397,7 @@ RayTracer::shadow(const Ray3f& ray)
 //[]---------------------------------------------------[]
 {
   cg::Intersection hit;
-
+  
   if(!_bvh->intersect(ray, hit)){
     return false;
   }
@@ -370,7 +406,7 @@ RayTracer::shadow(const Ray3f& ray)
   
   auto c = primitive->material()->transparency;
 
-  if(c != Color::black){
+  if(cg::math::isZero(maxRGB(c))){
     return ++_numberOfHits;
   }
   return false;

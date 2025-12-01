@@ -101,8 +101,8 @@ private:
   void setPixelRay(float x, float y);
   Color shoot(float x, float y);
   bool intersect(const Ray3f&, Intersection&);
-  Color trace(const Ray3f& ray, uint32_t level, float weight);
-  Color shade(const Ray3f&, Intersection&, uint32_t, float);
+  Color trace(const Ray3f& ray, uint32_t level, float weight, float ior = 1.f);
+  Color shade(const Ray3f&, Intersection&, uint32_t, float, float ior = 1.f);
   bool shadow(const Ray3f&);
   Color background() const;
 
