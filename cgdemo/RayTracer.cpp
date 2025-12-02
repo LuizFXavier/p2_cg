@@ -393,23 +393,25 @@ RayTracer::shadow(const Ray3f& ray)
 //[]---------------------------------------------------[]
 //|  Verifiy if ray is a shadow ray                     |
 //|  @param the ray (input)                             |
-//|  @return true if the ray intersects an object       |
+//|  @return true if the ray intersects an opaque object|
 //[]---------------------------------------------------[]
 {
   cg::Intersection hit;
   
-  if(!_bvh->intersect(ray, hit)){
-    return false;
-  }
+  while (true){
+    if(!_bvh->intersect(ray, hit)){
+      return false;
+    }
+    auto primitive = (Primitive*)hit.object;
+    
+    auto c = primitive->material()->transparency;
 
-  auto primitive = (Primitive*)hit.object;
+    if(cg::math::isZero(maxRGB(c))){
+      return ++_numberOfHits;
+    }
+    ray.tMin = hit.distance + rt_eps();
+  }
   
-  auto c = primitive->material()->transparency;
-
-  if(cg::math::isZero(maxRGB(c))){
-    return ++_numberOfHits;
-  }
-  return false;
 }
 
 } // end namespace cg
