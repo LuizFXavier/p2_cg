@@ -109,7 +109,10 @@ private:
   PixelBuffer* lineBuffer = nullptr;
   PixelBuffer gridBuffer[(maxSteps + 1)][(maxSteps + 1)];
 
-  float adaptativeDistance;
+  float _adaptativeDistance;
+  int _subDivisionLevel;
+  int vezesQueSabo = 0;
+  int consultas = 0;
 
   void scan(Image& image);
   void setPixelRay(float x, float y);
@@ -121,9 +124,11 @@ private:
   Color background() const;
 
   void adaptativeScan(Image& image);
-  Color adaptativeColor(int i, int j, float x, float y, int step);
+  Color adaptativeColor(int i, int j, float x, float y, int step, int level);
   void firstSlideGridBuffer(int begin);
   void slideGridBuffer(int begin);
+  void clearLastGridColumn();
+  void copyBottomGridLine(int begin);
 
   vec3f imageToWindow(float x, float y) const
   {
@@ -131,6 +136,59 @@ private:
   }
 
 }; // RayTracer
+
+inline void
+RayTracer::firstSlideGridBuffer(int begin){
+  
+  for(int i = 0; i <= maxSteps; ++i){
+    // Cópia da última coluna na primeira
+    gridBuffer[i][0] = gridBuffer[i][maxSteps];
+  }
+
+  // Reset do restante do grid
+  for(int i = 0; i <= maxSteps; ++i)
+    for(int j = 1; j <= maxSteps; ++j)
+      gridBuffer[i][j].state = 0;
+    
+}
+
+inline void
+RayTracer::slideGridBuffer(int begin){
+  
+  for(int j = 0; j <= maxSteps; ++j){
+    // Cópia da última coluna para a primeira
+    gridBuffer[j][0] = gridBuffer[j][maxSteps];
+
+    // Cópia do conteúdo do lineBuffer para a primeira linha
+    gridBuffer[0][j] = lineBuffer[begin + j];
+  }
+
+  // Reset do restante do grid
+  for(int i = 1; i <= maxSteps; ++i)
+    for(int j = 1; j <= maxSteps; ++j)
+      gridBuffer[i][j].state = 0;
+    
+}
+
+inline void
+RayTracer::clearLastGridColumn(){
+  
+  for(int i = 0; i <= maxSteps; ++i){
+    
+    gridBuffer[i][maxSteps].state = 0;
+  }
+    
+}
+
+inline void
+RayTracer::copyBottomGridLine(int begin){
+  
+  for(int j = 0; j <= maxSteps; ++j){
+    
+    lineBuffer[begin + j] = gridBuffer[maxSteps][j];
+  }
+    
+}
 
 } // end namespace cg
 

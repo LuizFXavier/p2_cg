@@ -58,8 +58,10 @@ printElapsedTime(const char* s, Stopwatch::ms_time time)
 // =========
 RayTracer::RayTracer(SceneBase& scene, Camera& camera):
   Renderer{scene, camera},
-  _maxRecursionLevel{6},
-  _minWeight{minMinWeight}
+  _maxRecursionLevel{1},
+  _minWeight{minMinWeight},
+  _adaptativeDistance{0.2},
+  _subDivisionLevel{1}
 {
   // do nothing
 }
@@ -140,12 +142,19 @@ RayTracer::renderImage(Image& image)
   _pixelRay.tMax = B;
   _pixelRay.set(_camera->position(), -_vrc.n);
   _numberOfRays = _numberOfHits = 0;
-  scan(image);
+
+  if(_maxRecursionLevel == 1)
+    adaptativeScan(image);
+  else
+    scan(image);
+  
 
   auto et = timer.time();
 
   std::cout << "\nNumber of rays: " << _numberOfRays;
   std::cout << "\nNumber of hits: " << _numberOfHits;
+  std::cout << "\nNumber of sabo: " << (float)vezesQueSabo / (float)consultas * 100;
+  std::cout << "\nNumber of nães: " << (float)(consultas - vezesQueSabo) / (float)consultas * 100;
   printElapsedTime("\nDONE! ", et);
 }
 
@@ -171,6 +180,12 @@ RayTracer::setPixelRay(float x, float y)
   }
 }
 
+inline auto
+maxRGB(const Color& c)
+{
+  return math::max(math::max(c.r, c.g), c.b);
+}
+
 void
 RayTracer::scan(Image& image)
 {
@@ -194,26 +209,43 @@ RayTracer::adaptativeScan(Image &image){
   
   ImageBuffer scanLine{_viewport.w, 1};
 
-  for (auto i = 0; i < _viewport.h; ++i){
-    scanLine[i] = adaptativeColor(0, 0, (float)i, 0.f, maxSteps);
-    firstSlideGridBuffer(i);
+  // Caso inicial, com o lineBuffer conhecidamente vazio:
+  printf("Adaptative scanning line %d of %d\r", 1, _viewport.h);
+  
+  for (auto j = 0; j < _viewport.w; ++j){
+    scanLine[j] = adaptativeColor(0, 0, (float)j, 0.f, maxSteps, _subDivisionLevel);
+    copyBottomGridLine(j * maxSteps);
+    firstSlideGridBuffer(j * maxSteps);
   }
 
-  for (auto j = 0; j < _viewport.h; j++){
+  image.setData(0, 0, scanLine);
 
-    printf("Adaptative scanning line %d of %d\r", j + 1, _viewport.h);
-    for (auto i = 0; i < _viewport.w; i++){
+  // Caso geral
 
-      scanLine[i] = adaptativeColor(0, 0, (float)i, float(j), maxSteps);
+  for (auto i = 1; i < _viewport.h; ++i){
+    
+    printf("Adaptative scanning line %d of %d\r", i + 1, _viewport.h);
+
+    // Reseta a última coluna sempre que chegar na borda da tela
+    clearLastGridColumn();
+
+    for (auto j = 0; j < _viewport.w; j++){
+      // Passa o grid para o próximo pixel
+      slideGridBuffer(j * maxSteps);
+
+      scanLine[j] = adaptativeColor(0, 0, (float)j, (float)i, maxSteps, _subDivisionLevel);
+
+      // Copia as cores obtidas neste pixel para o lineBuffer
+      copyBottomGridLine(j * maxSteps);
     }
       
-    image.setData(0, j, scanLine);
+    image.setData(0, i, scanLine);
   }
   delete[] lineBuffer;
 }
 
 Color
-RayTracer::adaptativeColor(int i, int j, float x, float y, int step){
+RayTracer::adaptativeColor(int i, int j, float x, float y, int step, int level){
   
   auto s = step / maxSteps;
 
@@ -223,9 +255,11 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step){
 
   if(gridBuffer[i][j].state){
     auto& gb = gridBuffer[i][j];
+    ++vezesQueSabo;
     c[0] = Color(gb.r, gb.g, gb.b);
   }
   else{
+    ++_numberOfRays;
     c[0] = shoot(x, y);
     
     gridBuffer[i][j].state = 1;
@@ -237,9 +271,11 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step){
   
   if(gridBuffer[i + step][j].state){
     auto& gb = gridBuffer[i + step][j];
+    ++vezesQueSabo;
     c[1] = Color(gb.r, gb.g, gb.b);
   }
   else{
+    ++_numberOfRays;
     c[1] = shoot(x + s, y);
     
     gridBuffer[i + step][j].state = 1;
@@ -251,9 +287,11 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step){
 
   if(gridBuffer[i][j + step].state){
     auto& gb = gridBuffer[i][j + step];
+    ++vezesQueSabo;
     c[2] = Color(gb.r, gb.g, gb.b);
   }
   else{
+    ++_numberOfRays;
     c[2] = shoot(x, y + s);
     
     gridBuffer[i][j + step].state = 1;
@@ -265,9 +303,11 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step){
 
   if(gridBuffer[i + step][j + step].state){
     auto& gb = gridBuffer[i + step][j + step];
+    ++vezesQueSabo;
     c[3] = Color(gb.r, gb.g, gb.b);
   }
   else{
+    ++_numberOfRays;
     c[3] = shoot(x + s, y + s);
     
     gridBuffer[i + step][j + step].state = 1;
@@ -277,65 +317,31 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step){
     gridBuffer[i + step][j + step].b = c[0].b * 255;
   }
 
+  consultas += 4;
+
   auto median = (c[0] + c[1] + c[2] + c[3]) * 0.25;
   
-  if (step == 1)
+  if (step == 1 || level == 0)
     return median;
 
   for(auto& color : c){
-    if(math::abs(maxRGB(color - median) > adaptativeDistance)){
+    if(math::abs(maxRGB(color - median)) > _adaptativeDistance){
       int leap = step / 2;
       float hop = leap / maxSteps;
 
-      c[0] = adaptativeColor(i, j, x, y, leap);
+      c[0] = adaptativeColor(i, j, x, y, leap, level - 1);
 
-      c[1] = adaptativeColor(i + leap, j, x + hop, y, leap);
+      c[1] = adaptativeColor(i + leap, j, x + hop, y, leap, level - 1);
 
-      c[2] = adaptativeColor(i, j + leap, x, y + hop, leap);
+      c[2] = adaptativeColor(i, j + leap, x, y + hop, leap, level - 1);
 
-      c[3] = adaptativeColor(i + leap, j + leap, x + hop, y + hop, leap);
+      c[3] = adaptativeColor(i + leap, j + leap, x + hop, y + hop, leap, level - 1);
 
       break;
     }
   }
 
   return (c[0] + c[1] + c[2] + c[3]) * 0.25;
-}
-
-void
-RayTracer::firstSlideGridBuffer(int begin){
-  
-  for(int j = 0; j <= maxSteps; ++j){
-    // Cópia da última linha no buffer
-    lineBuffer[begin + j] = gridBuffer[0][j];
-
-    // Cópia da última coluna na primeira
-    gridBuffer[j][0] = gridBuffer[j][maxSteps];
-  }
-
-  // Reset do restante do grid
-  for(int i = 0; i <= maxSteps; ++i)
-    for(int j = 1; j <= maxSteps; ++j)
-      gridBuffer[i][j].state = 0;
-    
-}
-
-void
-RayTracer::slideGridBuffer(int begin){
-  
-  for(int j = 0; j <= maxSteps; ++j){
-    // Cópia da última linha no buffer
-    lineBuffer[begin + j] = gridBuffer[0][j];
-
-    // Cópia da última coluna na primeira
-    gridBuffer[j][0] = gridBuffer[j][maxSteps];
-  }
-
-  // Reset do restante do grid
-  for(int i = 0; i <= maxSteps; ++i)
-    for(int j = 1; j <= maxSteps; ++j)
-      gridBuffer[i][j].state = 0;
-    
 }
 
 Color
@@ -401,12 +407,6 @@ RayTracer::intersect(const Ray3f& ray, Intersection& hit)
   hit.object = nullptr;
   hit.distance = ray.tMax;
   return _bvh->intersect(ray, hit) ? ++_numberOfHits : false;
-}
-
-inline auto
-maxRGB(const Color& c)
-{
-  return math::max(math::max(c.r, c.g), c.b);
 }
 
 Color
