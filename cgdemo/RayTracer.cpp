@@ -187,6 +187,157 @@ RayTracer::scan(Image& image)
   }
 }
 
+void 
+RayTracer::adaptativeScan(Image &image){
+
+  lineBuffer = new PixelBuffer[_viewport.w * (maxSteps + 1)];
+  
+  ImageBuffer scanLine{_viewport.w, 1};
+
+  for (auto i = 0; i < _viewport.h; ++i){
+    scanLine[i] = adaptativeColor(0, 0, (float)i, 0.f, maxSteps);
+    firstSlideGridBuffer(i);
+  }
+
+  for (auto j = 0; j < _viewport.h; j++){
+
+    printf("Adaptative scanning line %d of %d\r", j + 1, _viewport.h);
+    for (auto i = 0; i < _viewport.w; i++){
+
+      scanLine[i] = adaptativeColor(0, 0, (float)i, float(j), maxSteps);
+    }
+      
+    image.setData(0, j, scanLine);
+  }
+  delete[] lineBuffer;
+}
+
+Color
+RayTracer::adaptativeColor(int i, int j, float x, float y, int step){
+  
+  auto s = step / maxSteps;
+
+  Color c[4];
+
+  // Checks if the color is already know. Shoots a ray if not.
+
+  if(gridBuffer[i][j].state){
+    auto& gb = gridBuffer[i][j];
+    c[0] = Color(gb.r, gb.g, gb.b);
+  }
+  else{
+    c[0] = shoot(x, y);
+    
+    gridBuffer[i][j].state = 1;
+
+    gridBuffer[i][j].r = c[0].r * 255;
+    gridBuffer[i][j].g = c[0].g * 255;
+    gridBuffer[i][j].b = c[0].b * 255;
+  }
+  
+  if(gridBuffer[i + step][j].state){
+    auto& gb = gridBuffer[i + step][j];
+    c[1] = Color(gb.r, gb.g, gb.b);
+  }
+  else{
+    c[1] = shoot(x + s, y);
+    
+    gridBuffer[i + step][j].state = 1;
+
+    gridBuffer[i + step][j].r = c[0].r * 255;
+    gridBuffer[i + step][j].g = c[0].g * 255;
+    gridBuffer[i + step][j].b = c[0].b * 255;
+  }
+
+  if(gridBuffer[i][j + step].state){
+    auto& gb = gridBuffer[i][j + step];
+    c[2] = Color(gb.r, gb.g, gb.b);
+  }
+  else{
+    c[2] = shoot(x, y + s);
+    
+    gridBuffer[i][j + step].state = 1;
+
+    gridBuffer[i][j + step].r = c[0].r * 255;
+    gridBuffer[i][j + step].g = c[0].g * 255;
+    gridBuffer[i][j + step].b = c[0].b * 255;
+  }
+
+  if(gridBuffer[i + step][j + step].state){
+    auto& gb = gridBuffer[i + step][j + step];
+    c[3] = Color(gb.r, gb.g, gb.b);
+  }
+  else{
+    c[3] = shoot(x + s, y + s);
+    
+    gridBuffer[i + step][j + step].state = 1;
+
+    gridBuffer[i + step][j + step].r = c[0].r * 255;
+    gridBuffer[i + step][j + step].g = c[0].g * 255;
+    gridBuffer[i + step][j + step].b = c[0].b * 255;
+  }
+
+  auto median = (c[0] + c[1] + c[2] + c[3]) * 0.25;
+  
+  if (step == 1)
+    return median;
+
+  for(auto& color : c){
+    if(math::abs(maxRGB(color - median) > adaptativeDistance)){
+      int leap = step / 2;
+      float hop = leap / maxSteps;
+
+      c[0] = adaptativeColor(i, j, x, y, leap);
+
+      c[1] = adaptativeColor(i + leap, j, x + hop, y, leap);
+
+      c[2] = adaptativeColor(i, j + leap, x, y + hop, leap);
+
+      c[3] = adaptativeColor(i + leap, j + leap, x + hop, y + hop, leap);
+
+      break;
+    }
+  }
+
+  return (c[0] + c[1] + c[2] + c[3]) * 0.25;
+}
+
+void
+RayTracer::firstSlideGridBuffer(int begin){
+  
+  for(int j = 0; j <= maxSteps; ++j){
+    // Cópia da última linha no buffer
+    lineBuffer[begin + j] = gridBuffer[0][j];
+
+    // Cópia da última coluna na primeira
+    gridBuffer[j][0] = gridBuffer[j][maxSteps];
+  }
+
+  // Reset do restante do grid
+  for(int i = 0; i <= maxSteps; ++i)
+    for(int j = 1; j <= maxSteps; ++j)
+      gridBuffer[i][j].state = 0;
+    
+}
+
+void
+RayTracer::slideGridBuffer(int begin){
+  
+  for(int j = 0; j <= maxSteps; ++j){
+    // Cópia da última linha no buffer
+    lineBuffer[begin + j] = gridBuffer[0][j];
+
+    // Cópia da última coluna na primeira
+    gridBuffer[j][0] = gridBuffer[j][maxSteps];
+  }
+
+  // Reset do restante do grid
+  for(int i = 0; i <= maxSteps; ++i)
+    for(int j = 1; j <= maxSteps; ++j)
+      gridBuffer[i][j].state = 0;
+    
+}
+
 Color
 RayTracer::shoot(float x, float y)
 //[]---------------------------------------------------[]
@@ -358,17 +509,17 @@ RayTracer::shade(const Ray3f& ray,
       auto cosOut = 1 - (n12 * n12) * (1 - cosIn * cosIn);
       
       if(!cg::math::isNegative(cosOut)){
-        // std::cout << "Transparente :) " << C2 << "\n";
+        
         cosOut = sqrt(cosOut);
         auto L = ray.direction;
-        // auto transparencyRay = Ray3f{P, n12 * L + (n12 * cosIn - cosOut) * N};
+        
         auto direction = n12 * L + (n12 * cosIn - cosOut) * N;
         auto transparencyRay = Ray3f{P + direction * rt_eps(), direction};
 
         float r0 = pow((ior - m->ior) / (ior + m->ior), 2);
 
         reflectRatio = r0 + (1 - r0) * pow(1 - cosIn, 5);
-        // std::cout << reflectRatio << "\n";
+        
         refractedColor = m->transparency * trace(transparencyRay, level + 1, w);
       }
     }

@@ -41,6 +41,12 @@
 namespace cg
 { // begin namespace cg
 
+struct PixelBuffer{
+  unsigned char r;
+  unsigned char g;
+  unsigned char b;
+  unsigned char state{};
+};
 
 /////////////////////////////////////////////////////////////////////
 //
@@ -51,6 +57,9 @@ class RayTracer: public Renderer
 public:
   static constexpr auto minMinWeight = float(0.001);
   static constexpr auto maxMaxRecursionLevel = uint32_t(20);
+  static constexpr auto maxSubdivision = 4;
+  static constexpr auto maxSteps = 1 << maxSubdivision;
+  static constexpr auto maxAdaptativeDistance = 1.f;
 
   RayTracer(SceneBase&, Camera&);
 
@@ -97,6 +106,11 @@ private:
   float _Ih;
   float _Iw;
 
+  PixelBuffer* lineBuffer = nullptr;
+  PixelBuffer gridBuffer[(maxSteps + 1)][(maxSteps + 1)];
+
+  float adaptativeDistance;
+
   void scan(Image& image);
   void setPixelRay(float x, float y);
   Color shoot(float x, float y);
@@ -105,6 +119,11 @@ private:
   Color shade(const Ray3f&, Intersection&, uint32_t, float, float ior = 1.f);
   bool shadow(const Ray3f&);
   Color background() const;
+
+  void adaptativeScan(Image& image);
+  Color adaptativeColor(int i, int j, float x, float y, int step);
+  void firstSlideGridBuffer(int begin);
+  void slideGridBuffer(int begin);
 
   vec3f imageToWindow(float x, float y) const
   {
