@@ -33,6 +33,8 @@
 #ifndef __RayTracer_h
 #define __RayTracer_h
 
+#include <iostream>
+
 #include "geometry/Intersection.h"
 #include "graphics/Image.h"
 #include "graphics/PrimitiveBVH.h"
@@ -41,6 +43,12 @@
 namespace cg
 { // begin namespace cg
 
+struct PixelBuffer{
+  std::uint8_t r;
+  std::uint8_t g;
+  std::uint8_t b;
+  std::uint8_t state{};
+};
 
 /////////////////////////////////////////////////////////////////////
 //
@@ -51,6 +59,9 @@ class RayTracer: public Renderer
 public:
   static constexpr auto minMinWeight = float(0.001);
   static constexpr auto maxMaxRecursionLevel = uint32_t(20);
+  static constexpr auto maxSubdivision = 4;
+  static constexpr auto maxSteps = 1 << maxSubdivision;
+  static constexpr auto maxAdaptativeDistance = 1.f;
 
   RayTracer(SceneBase&, Camera&);
 
@@ -97,14 +108,32 @@ private:
   float _Ih;
   float _Iw;
 
+  PixelBuffer* lineBuffer = nullptr;
+  PixelBuffer gridBuffer[(maxSteps + 1)][(maxSteps + 1)];
+
+  float _adaptativeDistance;
+  int _subDivisionLevel;
+  int vezesQueSabo = 0;
+  int consultas = 0;
+  int macaco = 0;
+
   void scan(Image& image);
   void setPixelRay(float x, float y);
   Color shoot(float x, float y);
   bool intersect(const Ray3f&, Intersection&);
-  Color trace(const Ray3f& ray, uint32_t level, float weight);
-  Color shade(const Ray3f&, Intersection&, uint32_t, float);
+  Color trace(const Ray3f& ray, uint32_t level, float weight, float ior = 1.f);
+  Color shade(const Ray3f&, Intersection&, uint32_t, float, float ior = 1.f);
   bool shadow(const Ray3f&);
   Color background() const;
+
+  void adaptativeScan(Image& image);
+  Color adaptativeColor(int i, int j, float x, float y, int step, int level);
+  void firstSlideGridBuffer(int begin);
+  void slideGridBuffer(int begin);
+  void clearLastGridColumn();
+  void clearFirstGridColumn();
+  void copyBottomGridLine(int begin);
+  void printGrid(int begin);
 
   vec3f imageToWindow(float x, float y) const
   {
@@ -112,6 +141,85 @@ private:
   }
 
 }; // RayTracer
+
+inline void
+RayTracer::firstSlideGridBuffer(int begin){
+  
+  for(int i = 0; i <= maxSteps; ++i){
+    // Cópia da última coluna na primeira
+    gridBuffer[i][0] = gridBuffer[i][maxSteps];
+  }
+
+  // Reset do restante do grid
+  for(int i = 0; i <= maxSteps; ++i)
+    for(int j = 1; j <= maxSteps; ++j)
+      gridBuffer[i][j].state = 0;
+    
+}
+
+inline void
+RayTracer::slideGridBuffer(int begin){
+  
+  for(int j = 0; j <= maxSteps; ++j){
+    // Cópia da última coluna para a primeira
+    gridBuffer[j][0] = gridBuffer[j][maxSteps];
+
+    // Cópia do conteúdo do lineBuffer para a primeira linha
+    gridBuffer[0][j] = lineBuffer[begin + j];
+  }
+
+  // Reset do restante do grid
+  for(int i = 1; i <= maxSteps; ++i)
+    for(int j = 1; j <= maxSteps; ++j)
+      gridBuffer[i][j].state = 0;
+    
+}
+
+inline void
+RayTracer::clearLastGridColumn(){
+  
+  for(int i = 0; i <= maxSteps; ++i){
+    
+    gridBuffer[i][maxSteps].state = 0;
+  }
+    
+}
+inline void
+RayTracer::clearFirstGridColumn(){
+  
+  for(int i = 0; i <= maxSteps; ++i){
+    
+    gridBuffer[i][0].state = 0;
+  }
+    
+}
+
+inline void
+RayTracer::copyBottomGridLine(int begin){
+  
+  for(int j = 0; j <= maxSteps; ++j){
+    
+    lineBuffer[begin + j] = gridBuffer[maxSteps][j];
+  }
+    
+}
+
+inline void
+RayTracer::printGrid(int begin){
+  
+  for(int i = 0; i <= maxSteps; ++i){
+    for(int j = 0; j <= maxSteps; ++j){
+      std::cout << (int)gridBuffer[i][j].state << " ";
+    }
+    std::cout << "\n";
+  }
+  std::cout << "\n";
+  for(int i = 0; i <= maxSteps; ++i)
+    std::cout << (int)lineBuffer[begin + i].state << " ";
+  
+  std::cout << "\n";
+}
+
 
 } // end namespace cg
 

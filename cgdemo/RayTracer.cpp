@@ -58,8 +58,10 @@ printElapsedTime(const char* s, Stopwatch::ms_time time)
 // =========
 RayTracer::RayTracer(SceneBase& scene, Camera& camera):
   Renderer{scene, camera},
-  _maxRecursionLevel{6},
-  _minWeight{minMinWeight}
+  _maxRecursionLevel{1},
+  _minWeight{minMinWeight},
+  _adaptativeDistance{0.05},
+  _subDivisionLevel{4}
 {
   // do nothing
 }
@@ -140,12 +142,20 @@ RayTracer::renderImage(Image& image)
   _pixelRay.tMax = B;
   _pixelRay.set(_camera->position(), -_vrc.n);
   _numberOfRays = _numberOfHits = 0;
-  scan(image);
+
+  // if(_maxRecursionLevel == 6)
+    adaptativeScan(image);
+  // else
+    // scan(image);
+  
 
   auto et = timer.time();
 
   std::cout << "\nNumber of rays: " << _numberOfRays;
   std::cout << "\nNumber of hits: " << _numberOfHits;
+  std::cout << "\nNumber of sabo: " << (float)vezesQueSabo / (float)consultas * 100;
+  std::cout << "\nNumber of nães: " << (float)(consultas - vezesQueSabo) / (float)consultas * 100;
+  std::cout << "\nNumber of caco: " << macaco;
   printElapsedTime("\nDONE! ", et);
 }
 
@@ -171,6 +181,12 @@ RayTracer::setPixelRay(float x, float y)
   }
 }
 
+inline auto
+maxRGB(const Color& c)
+{
+  return math::max(math::max(c.r, c.g), c.b);
+}
+
 void
 RayTracer::scan(Image& image)
 {
@@ -185,6 +201,161 @@ RayTracer::scan(Image& image)
       scanLine[i] = shoot((float)i + 0.5f, y);
     image.setData(0, j, scanLine);
   }
+}
+
+void 
+RayTracer::adaptativeScan(Image &image){
+
+  lineBuffer = new PixelBuffer[_viewport.w * (maxSteps + 1)];
+  
+  ImageBuffer scanLine{_viewport.w, 1};
+
+  // Caso inicial, com o lineBuffer conhecidamente vazio:
+  printf("Adaptative scanning line %d of %d\r", 1, _viewport.h);
+  
+  for (auto j = 0; j < _viewport.w; ++j){
+    scanLine[j] = adaptativeColor(0, 0, (float)j, 0.f, maxSteps, _subDivisionLevel);
+    
+    copyBottomGridLine(j * maxSteps);
+
+    firstSlideGridBuffer(j * maxSteps);
+  }
+
+  image.setData(0, 0, scanLine);
+
+  clearFirstGridColumn();
+  // Caso geral
+
+  for (auto i = 1; i < _viewport.h; ++i){
+    
+    printf("Adaptative scanning line %d of %d\r", i + 1, _viewport.h);
+
+    // Reseta a última coluna sempre que chegar na borda da tela
+    
+    clearLastGridColumn();
+    
+    for (auto j = 0; j < _viewport.w; j++){
+      // Passa o grid para o próximo pixel
+      slideGridBuffer(j * maxSteps);
+      
+      scanLine[j] = adaptativeColor(0, 0, (float)j, (float)i, maxSteps, _subDivisionLevel);
+
+      // Copia as cores obtidas neste pixel para o lineBuffer
+      copyBottomGridLine(j * maxSteps);
+    }
+    image.setData(0, i, scanLine);
+  }
+  delete[] lineBuffer;
+}
+
+inline auto
+arand(){
+  return ((float)std::rand() / RAND_MAX / 4) - 0.125f;
+}
+
+Color
+RayTracer::adaptativeColor(int i, int j, float x, float y, int step, int level){
+  
+  auto s = (float)step / (float)maxSteps;
+
+  Color c[4];
+
+  // Checks if the color is already known. Shoots a ray if not.
+
+  if(gridBuffer[i][j].state){
+    auto& gb = gridBuffer[i][j];
+    ++vezesQueSabo;
+    c[0] = Color(gb.r, gb.g, gb.b);
+  }
+  else{
+    ++_numberOfRays;
+    
+    c[0] = shoot(x + arand(), y + arand());
+    
+    gridBuffer[i][j].state = 1;
+
+    gridBuffer[i][j].r = c[0].r * 255;
+    gridBuffer[i][j].g = c[0].g * 255;
+    gridBuffer[i][j].b = c[0].b * 255;
+  }
+  
+  if(gridBuffer[i + step][j].state){
+    auto& gb = gridBuffer[i + step][j];
+    ++vezesQueSabo;
+    c[1] = Color(gb.r, gb.g, gb.b);
+  }
+  else{
+    
+    ++_numberOfRays;
+    c[1] = shoot(x + s + arand(), y + arand());
+    
+    gridBuffer[i + step][j].state = 1;
+
+    gridBuffer[i + step][j].r = c[1].r * 255;
+    gridBuffer[i + step][j].g = c[1].g * 255;
+    gridBuffer[i + step][j].b = c[1].b * 255;
+  }
+
+  if(gridBuffer[i][j + step].state){
+    auto& gb = gridBuffer[i][j + step];
+    ++vezesQueSabo;
+    c[2] = Color(gb.r, gb.g, gb.b);
+  }
+  else{
+    ++_numberOfRays;
+    
+    c[2] = shoot(x + arand(), y + s + arand());
+    
+    gridBuffer[i][j + step].state = 1;
+
+    gridBuffer[i][j + step].r = c[2].r * 255;
+    gridBuffer[i][j + step].g = c[2].g * 255;
+    gridBuffer[i][j + step].b = c[2].b * 255;
+  }
+
+  if(gridBuffer[i + step][j + step].state){
+    auto& gb = gridBuffer[i + step][j + step];
+    ++vezesQueSabo;
+    c[3] = Color(gb.r, gb.g, gb.b);
+  }
+  else{
+    ++_numberOfRays;
+    
+    c[3] = shoot(x + s + arand(), y + s + arand());
+    
+    gridBuffer[i + step][j + step].state = 1;
+
+    gridBuffer[i + step][j + step].r = c[3].r * 255;
+    gridBuffer[i + step][j + step].g = c[3].g * 255;
+    gridBuffer[i + step][j + step].b = c[3].b * 255;
+  }
+
+  consultas += 4;
+
+  auto median = (c[0] + c[1] + c[2] + c[3]) * 0.25;
+  
+  if (step == 1 || level == 0)
+    return median;
+
+  for(auto& color : c){
+    if(math::abs(maxRGB(color - median)) > _adaptativeDistance){
+      ++macaco;
+      int leap = step / 2;
+      float hop = (float)leap / (float)maxSteps;
+
+      c[0] = adaptativeColor(i, j, x, y, leap, level - 1);
+
+      c[1] = adaptativeColor(i + leap, j, x + hop, y, leap, level - 1);
+
+      c[2] = adaptativeColor(i, j + leap, x, y + hop, leap, level - 1);
+
+      c[3] = adaptativeColor(i + leap, j + leap, x + hop, y + hop, leap, level - 1);
+
+      break;
+    }
+  }
+
+  return (c[0] + c[1] + c[2] + c[3]) * 0.25;
 }
 
 Color
@@ -214,7 +385,7 @@ RayTracer::shoot(float x, float y)
 }
 
 Color
-RayTracer::trace(const Ray3f& ray, uint32_t level, float weight)
+RayTracer::trace(const Ray3f& ray, uint32_t level, float weight, float ior)
 //[]---------------------------------------------------[]
 //|  Trace a ray                                        |
 //|  @param the ray                                     |
@@ -229,7 +400,7 @@ RayTracer::trace(const Ray3f& ray, uint32_t level, float weight)
 
   Intersection hit;
 
-  return intersect(ray, hit) ? shade(ray, hit, level, weight) : background();
+  return intersect(ray, hit) ? shade(ray, hit, level, weight, ior) : background();
 }
 
 inline constexpr auto
@@ -252,17 +423,12 @@ RayTracer::intersect(const Ray3f& ray, Intersection& hit)
   return _bvh->intersect(ray, hit) ? ++_numberOfHits : false;
 }
 
-inline auto
-maxRGB(const Color& c)
-{
-  return math::max(math::max(c.r, c.g), c.b);
-}
-
 Color
 RayTracer::shade(const Ray3f& ray,
   Intersection& hit,
   uint32_t level,
-  float weight)
+  float weight,
+  float ior)
 //[]---------------------------------------------------[]
 //|  Shade a point P                                    |
 //|  @param the ray (input)                             |
@@ -288,6 +454,9 @@ RayTracer::shade(const Ray3f& ray,
   // Start with ambient lighting
   auto m = primitive->material();
   auto color = _scene->ambientLight * m->ambient;
+  Color reflectedColor{0.f, 0.f, 0.f};
+  Color refractedColor{0.f, 0.f, 0.f};
+  float reflectRatio = 1.f;
   auto P = ray(hit.distance);
 
   // Compute direct lighting
@@ -324,18 +493,53 @@ RayTracer::shade(const Ray3f& ray,
     color += lc * m->diffuse * NL;
     if (m->shine <= 0 || (d = R.dot(L)) <= 0)
       continue;
-    color += lc * m->spot * pow(d, m->shine);
+    reflectedColor += lc * m->spot * pow(d, m->shine);
   }
   // Compute specular reflection
   if (m->specular != Color::black)
   {
-    weight *= maxRGB(m->specular);
-    if (weight > _minWeight && level < _maxRecursionLevel)
+    float w = weight * maxRGB(m->specular);
+    if (w > _minWeight && level < _maxRecursionLevel)
     {
       auto reflectionRay = Ray3f{P + R * rt_eps(), R};
-      color += m->specular * trace(reflectionRay, level + 1, weight);
+      reflectedColor += m->specular * trace(reflectionRay, level + 1, w);
     }
   }
+
+  // Compute refraction
+  if (m->transparency != Color::black && !cg::math::isZero(m->ior)){
+    // std::cout << "Talvez :) " << "\n";
+    float w = weight * maxRGB(m->transparency);
+
+    if (w > _minWeight && level < _maxRecursionLevel)
+    {
+      float n1 = ior;
+      float n2 = m->ior;
+      float n12 = n1 / n2;
+      
+      auto cosIn = - ray.direction.dot(N);
+      cosIn = clamp(cosIn, -1.f, 1.f);
+
+      auto cosOut = 1 - (n12 * n12) * (1 - cosIn * cosIn);
+      
+      if(!cg::math::isNegative(cosOut)){
+        
+        cosOut = sqrt(cosOut);
+        auto L = ray.direction;
+        
+        auto direction = n12 * L + (n12 * cosIn - cosOut) * N;
+        auto transparencyRay = Ray3f{P + direction * rt_eps(), direction};
+
+        float r0 = pow((ior - m->ior) / (ior + m->ior), 2);
+
+        reflectRatio = r0 + (1 - r0) * pow(1 - cosIn, 5);
+        
+        refractedColor = m->transparency * trace(transparencyRay, level + 1, w);
+      }
+    }
+  }
+  color += reflectedColor * reflectRatio + refractedColor * (1.f - reflectRatio);
+
   return color;
 }
 
@@ -354,10 +558,25 @@ RayTracer::shadow(const Ray3f& ray)
 //[]---------------------------------------------------[]
 //|  Verifiy if ray is a shadow ray                     |
 //|  @param the ray (input)                             |
-//|  @return true if the ray intersects an object       |
+//|  @return true if the ray intersects an opaque object|
 //[]---------------------------------------------------[]
 {
-  return _bvh->intersect(ray) ? ++_numberOfHits : false;
+  cg::Intersection hit;
+  
+  while (true){
+    if(!_bvh->intersect(ray, hit)){
+      return false;
+    }
+    auto primitive = (Primitive*)hit.object;
+    
+    auto c = primitive->material()->transparency;
+
+    if(cg::math::isZero(maxRGB(c))){
+      return ++_numberOfHits;
+    }
+    ray.tMin = hit.distance + rt_eps();
+  }
+  
 }
 
 } // end namespace cg

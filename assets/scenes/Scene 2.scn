@@ -1,0 +1,82 @@
+material "Default"
+{
+  ambient rgb(0,0,0)
+  diffuse rgb(0,0,0)
+  spot rgb(0,0,0)
+  shine 20
+  specular rgb(0.12549,0.392157,0.392157)
+  transparency rgb(0,1,1)
+  ior 1
+}
+material "Material 2"
+{
+  ambient rgb(0,0,0)
+  diffuse rgb(0.839662,0.446403,0.446403)
+  spot rgb(0.759494,0.346098,0.346098)
+  shine 100
+  specular rgb(0.156118,0.120547,0.120547)
+  transparency rgb(0,0,0)
+  ior 2
+}
+scene "Scene 2"
+{
+  environment
+  {
+    ambient rgb(0,0,0)
+    background rgb(0.523207,0.523207,0.523207)
+  }
+  object "Main Camera"
+  {
+    transform
+    {
+      position <0,2,8>
+      rotation <-10,-2,4.0638e-08>
+    }
+    camera
+    {
+      perspective
+      angle 60
+      aspect 1.77778
+      depth vec2(0.01,1000)
+    }
+  }
+  object "aqua"
+  {
+    transform
+    {
+      scale <3,1,3>
+    }
+    mesh "Plane" material "Default"
+  }
+  object "Ball"
+  {
+    transform
+    {
+      // identity
+    }
+    mesh "Sphere" material "Material 2"
+  }
+  object "Light 1"
+  {
+    transform
+    {
+      position <-3,3,3>
+    }
+    light
+    {
+      point
+      range 0
+      falloff 0
+      color rgb(1,1,1)
+    }
+  }
+  object "mirror"
+  {
+    transform
+    {
+      position <0,0,-3>
+      rotation <90,0,0>
+    }
+    mesh "Plane" material "Default"
+  }
+}
