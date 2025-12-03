@@ -60,8 +60,8 @@ RayTracer::RayTracer(SceneBase& scene, Camera& camera):
   Renderer{scene, camera},
   _maxRecursionLevel{1},
   _minWeight{minMinWeight},
-  _adaptativeDistance{0.2},
-  _subDivisionLevel{1}
+  _adaptativeDistance{0.05},
+  _subDivisionLevel{4}
 {
   // do nothing
 }
@@ -143,10 +143,10 @@ RayTracer::renderImage(Image& image)
   _pixelRay.set(_camera->position(), -_vrc.n);
   _numberOfRays = _numberOfHits = 0;
 
-  if(_maxRecursionLevel == 1)
+  // if(_maxRecursionLevel == 6)
     adaptativeScan(image);
-  else
-    scan(image);
+  // else
+    // scan(image);
   
 
   auto et = timer.time();
@@ -155,6 +155,7 @@ RayTracer::renderImage(Image& image)
   std::cout << "\nNumber of hits: " << _numberOfHits;
   std::cout << "\nNumber of sabo: " << (float)vezesQueSabo / (float)consultas * 100;
   std::cout << "\nNumber of nães: " << (float)(consultas - vezesQueSabo) / (float)consultas * 100;
+  std::cout << "\nNumber of caco: " << macaco;
   printElapsedTime("\nDONE! ", et);
 }
 
@@ -214,12 +215,15 @@ RayTracer::adaptativeScan(Image &image){
   
   for (auto j = 0; j < _viewport.w; ++j){
     scanLine[j] = adaptativeColor(0, 0, (float)j, 0.f, maxSteps, _subDivisionLevel);
+    
     copyBottomGridLine(j * maxSteps);
+
     firstSlideGridBuffer(j * maxSteps);
   }
 
   image.setData(0, 0, scanLine);
 
+  clearFirstGridColumn();
   // Caso geral
 
   for (auto i = 1; i < _viewport.h; ++i){
@@ -227,31 +231,36 @@ RayTracer::adaptativeScan(Image &image){
     printf("Adaptative scanning line %d of %d\r", i + 1, _viewport.h);
 
     // Reseta a última coluna sempre que chegar na borda da tela
+    
     clearLastGridColumn();
-
+    
     for (auto j = 0; j < _viewport.w; j++){
       // Passa o grid para o próximo pixel
       slideGridBuffer(j * maxSteps);
-
+      
       scanLine[j] = adaptativeColor(0, 0, (float)j, (float)i, maxSteps, _subDivisionLevel);
 
       // Copia as cores obtidas neste pixel para o lineBuffer
       copyBottomGridLine(j * maxSteps);
     }
-      
     image.setData(0, i, scanLine);
   }
   delete[] lineBuffer;
 }
 
+inline auto
+arand(){
+  return ((float)std::rand() / RAND_MAX / 4) - 0.125f;
+}
+
 Color
 RayTracer::adaptativeColor(int i, int j, float x, float y, int step, int level){
   
-  auto s = step / maxSteps;
+  auto s = (float)step / (float)maxSteps;
 
   Color c[4];
 
-  // Checks if the color is already know. Shoots a ray if not.
+  // Checks if the color is already known. Shoots a ray if not.
 
   if(gridBuffer[i][j].state){
     auto& gb = gridBuffer[i][j];
@@ -260,7 +269,8 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step, int level){
   }
   else{
     ++_numberOfRays;
-    c[0] = shoot(x, y);
+    
+    c[0] = shoot(x + arand(), y + arand());
     
     gridBuffer[i][j].state = 1;
 
@@ -275,14 +285,15 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step, int level){
     c[1] = Color(gb.r, gb.g, gb.b);
   }
   else{
+    
     ++_numberOfRays;
-    c[1] = shoot(x + s, y);
+    c[1] = shoot(x + s + arand(), y + arand());
     
     gridBuffer[i + step][j].state = 1;
 
-    gridBuffer[i + step][j].r = c[0].r * 255;
-    gridBuffer[i + step][j].g = c[0].g * 255;
-    gridBuffer[i + step][j].b = c[0].b * 255;
+    gridBuffer[i + step][j].r = c[1].r * 255;
+    gridBuffer[i + step][j].g = c[1].g * 255;
+    gridBuffer[i + step][j].b = c[1].b * 255;
   }
 
   if(gridBuffer[i][j + step].state){
@@ -292,13 +303,14 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step, int level){
   }
   else{
     ++_numberOfRays;
-    c[2] = shoot(x, y + s);
+    
+    c[2] = shoot(x + arand(), y + s + arand());
     
     gridBuffer[i][j + step].state = 1;
 
-    gridBuffer[i][j + step].r = c[0].r * 255;
-    gridBuffer[i][j + step].g = c[0].g * 255;
-    gridBuffer[i][j + step].b = c[0].b * 255;
+    gridBuffer[i][j + step].r = c[2].r * 255;
+    gridBuffer[i][j + step].g = c[2].g * 255;
+    gridBuffer[i][j + step].b = c[2].b * 255;
   }
 
   if(gridBuffer[i + step][j + step].state){
@@ -308,13 +320,14 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step, int level){
   }
   else{
     ++_numberOfRays;
-    c[3] = shoot(x + s, y + s);
+    
+    c[3] = shoot(x + s + arand(), y + s + arand());
     
     gridBuffer[i + step][j + step].state = 1;
 
-    gridBuffer[i + step][j + step].r = c[0].r * 255;
-    gridBuffer[i + step][j + step].g = c[0].g * 255;
-    gridBuffer[i + step][j + step].b = c[0].b * 255;
+    gridBuffer[i + step][j + step].r = c[3].r * 255;
+    gridBuffer[i + step][j + step].g = c[3].g * 255;
+    gridBuffer[i + step][j + step].b = c[3].b * 255;
   }
 
   consultas += 4;
@@ -326,8 +339,9 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step, int level){
 
   for(auto& color : c){
     if(math::abs(maxRGB(color - median)) > _adaptativeDistance){
+      ++macaco;
       int leap = step / 2;
-      float hop = leap / maxSteps;
+      float hop = (float)leap / (float)maxSteps;
 
       c[0] = adaptativeColor(i, j, x, y, leap, level - 1);
 

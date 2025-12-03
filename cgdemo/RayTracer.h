@@ -33,6 +33,8 @@
 #ifndef __RayTracer_h
 #define __RayTracer_h
 
+#include <iostream>
+
 #include "geometry/Intersection.h"
 #include "graphics/Image.h"
 #include "graphics/PrimitiveBVH.h"
@@ -42,10 +44,10 @@ namespace cg
 { // begin namespace cg
 
 struct PixelBuffer{
-  unsigned char r;
-  unsigned char g;
-  unsigned char b;
-  unsigned char state{};
+  std::uint8_t r;
+  std::uint8_t g;
+  std::uint8_t b;
+  std::uint8_t state{};
 };
 
 /////////////////////////////////////////////////////////////////////
@@ -113,6 +115,7 @@ private:
   int _subDivisionLevel;
   int vezesQueSabo = 0;
   int consultas = 0;
+  int macaco = 0;
 
   void scan(Image& image);
   void setPixelRay(float x, float y);
@@ -128,7 +131,9 @@ private:
   void firstSlideGridBuffer(int begin);
   void slideGridBuffer(int begin);
   void clearLastGridColumn();
+  void clearFirstGridColumn();
   void copyBottomGridLine(int begin);
+  void printGrid(int begin);
 
   vec3f imageToWindow(float x, float y) const
   {
@@ -179,6 +184,15 @@ RayTracer::clearLastGridColumn(){
   }
     
 }
+inline void
+RayTracer::clearFirstGridColumn(){
+  
+  for(int i = 0; i <= maxSteps; ++i){
+    
+    gridBuffer[i][0].state = 0;
+  }
+    
+}
 
 inline void
 RayTracer::copyBottomGridLine(int begin){
@@ -189,6 +203,23 @@ RayTracer::copyBottomGridLine(int begin){
   }
     
 }
+
+inline void
+RayTracer::printGrid(int begin){
+  
+  for(int i = 0; i <= maxSteps; ++i){
+    for(int j = 0; j <= maxSteps; ++j){
+      std::cout << (int)gridBuffer[i][j].state << " ";
+    }
+    std::cout << "\n";
+  }
+  std::cout << "\n";
+  for(int i = 0; i <= maxSteps; ++i)
+    std::cout << (int)lineBuffer[begin + i].state << " ";
+  
+  std::cout << "\n";
+}
+
 
 } // end namespace cg
 
