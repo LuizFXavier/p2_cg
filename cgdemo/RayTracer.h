@@ -85,6 +85,22 @@ public:
     _maxRecursionLevel = math::min(rl, maxMaxRecursionLevel);
   }
 
+  auto adaptativeDistance(){
+    return _adaptativeDistance;
+  }
+
+  void setAdaptativeDistance(float ad){
+    _adaptativeDistance = math::min(math::max(ad, 0.f), 1.f);
+  }
+
+  auto subDivisionLevel(){
+    return _subDivisionLevel;
+  }
+
+  void subDivisionLevel(int sbl){
+    _subDivisionLevel = math::min(math::max(sbl, 0), maxSubdivision);
+  }
+
   void update() override;
   void render() override;
   virtual void renderImage(Image&);
@@ -111,11 +127,11 @@ private:
   PixelBuffer* lineBuffer = nullptr;
   PixelBuffer gridBuffer[(maxSteps + 1)][(maxSteps + 1)];
 
-  float _adaptativeDistance;
-  int _subDivisionLevel;
-  int vezesQueSabo = 0;
-  int consultas = 0;
-  int macaco = 0;
+  float _adaptativeDistance; // Diferença mínima na componente da cor do pixel para que ocorra subdivisão
+  int _subDivisionLevel; // Nível de subdivisão que será utilizada na superamostragem
+  int _vezesQueSabo;
+  int _consultas;
+  int _subdivisions;
 
   void scan(Image& image);
   void setPixelRay(float x, float y);
