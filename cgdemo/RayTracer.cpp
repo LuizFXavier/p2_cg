@@ -58,10 +58,10 @@ printElapsedTime(const char* s, Stopwatch::ms_time time)
 // =========
 RayTracer::RayTracer(SceneBase& scene, Camera& camera):
   Renderer{scene, camera},
-  _maxRecursionLevel{1},
+  _maxRecursionLevel{6},
   _minWeight{minMinWeight},
-  _adaptativeDistance{0.05},
-  _subDivisionLevel{4}
+  _adaptativeDistance{0.5},
+  _subDivisionLevel{1}
 {
   // do nothing
 }
@@ -141,11 +141,11 @@ RayTracer::renderImage(Image& image)
   _pixelRay.tMin = F;
   _pixelRay.tMax = B;
   _pixelRay.set(_camera->position(), -_vrc.n);
-  _numberOfRays = _numberOfHits = 0;
+  _numberOfRays = _numberOfHits = _subdivisions = _consultas = _vezesQueSabo = 0;
 
-  // if(_maxRecursionLevel == 6)
+  // TODO: Colocar opção para utilizar o scan padrão?
     adaptativeScan(image);
-  // else
+  
     // scan(image);
   
 
@@ -153,9 +153,9 @@ RayTracer::renderImage(Image& image)
 
   std::cout << "\nNumber of rays: " << _numberOfRays;
   std::cout << "\nNumber of hits: " << _numberOfHits;
-  std::cout << "\nNumber of sabo: " << (float)vezesQueSabo / (float)consultas * 100;
-  std::cout << "\nNumber of nães: " << (float)(consultas - vezesQueSabo) / (float)consultas * 100;
-  std::cout << "\nNumber of caco: " << macaco;
+  std::cout << "\nNumber of buff: " << (float)_vezesQueSabo / (float)_consultas * 100;
+  std::cout << "\nNumber of miss: " << (float)(_consultas - _vezesQueSabo) / (float)_consultas * 100;
+  std::cout << "\nNumber of divs: " << _subdivisions;
   printElapsedTime("\nDONE! ", et);
 }
 
@@ -264,7 +264,7 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step, int level){
 
   if(gridBuffer[i][j].state){
     auto& gb = gridBuffer[i][j];
-    ++vezesQueSabo;
+    ++_vezesQueSabo;
     c[0] = Color(gb.r, gb.g, gb.b);
   }
   else{
@@ -281,7 +281,7 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step, int level){
   
   if(gridBuffer[i + step][j].state){
     auto& gb = gridBuffer[i + step][j];
-    ++vezesQueSabo;
+    ++_vezesQueSabo;
     c[1] = Color(gb.r, gb.g, gb.b);
   }
   else{
@@ -298,7 +298,7 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step, int level){
 
   if(gridBuffer[i][j + step].state){
     auto& gb = gridBuffer[i][j + step];
-    ++vezesQueSabo;
+    ++_vezesQueSabo;
     c[2] = Color(gb.r, gb.g, gb.b);
   }
   else{
@@ -315,7 +315,7 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step, int level){
 
   if(gridBuffer[i + step][j + step].state){
     auto& gb = gridBuffer[i + step][j + step];
-    ++vezesQueSabo;
+    ++_vezesQueSabo;
     c[3] = Color(gb.r, gb.g, gb.b);
   }
   else{
@@ -330,7 +330,7 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step, int level){
     gridBuffer[i + step][j + step].b = c[3].b * 255;
   }
 
-  consultas += 4;
+  _consultas += 4;
 
   auto median = (c[0] + c[1] + c[2] + c[3]) * 0.25;
   
@@ -339,7 +339,7 @@ RayTracer::adaptativeColor(int i, int j, float x, float y, int step, int level){
 
   for(auto& color : c){
     if(math::abs(maxRGB(color - median)) > _adaptativeDistance){
-      ++macaco;
+      ++_subdivisions;
       int leap = step / 2;
       float hop = (float)leap / (float)maxSteps;
 
