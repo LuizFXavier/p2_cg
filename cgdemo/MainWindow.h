@@ -29,7 +29,6 @@
 //
 // Author: Paulo Pagliosa
 // Last revision: 14/11/2025
-
 #ifndef __MainWindow_h
 #define __MainWindow_h
 
@@ -69,7 +68,6 @@ public:
   }
 
 private:
-
   AppMode appMode = AppMode::DEMO;
   std::unique_ptr<P2Window> p2App;
 
@@ -78,6 +76,8 @@ private:
   Reference<GLImage> _image;
   int _maxRecursionLevel{6};
   float _minWeight{RayTracer::minMinWeight};
+  int _subdivisionLevel{1};
+  float _adaptativeDistance{0.5f};
 
   static MeshMap _defaultMeshes;
 
@@ -117,7 +117,6 @@ private:
   void update() override;
 
 protected:
-
   bool onMouseLeftPress(int x, int y);
 
 }; // MainWindow
