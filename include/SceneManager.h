@@ -52,7 +52,11 @@ public:
             activeScene = it->second.get();
 
             activeScene->start();
+            /* TODO: Arrumar BVH
+            activeScene->update(0.0f);
 
+            activeScene->buildBVH();
+            */
         }
 
         else 

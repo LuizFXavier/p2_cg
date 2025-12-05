@@ -40,8 +40,13 @@ public:
 
     cg::Bounds3f bounds() const {
 
-        if (!shape)
+        if (!shape) {
+
+            puts("não tem shape\n");
+
             return {};
+
+        }
 
         auto b = shape->bounds();
 
@@ -51,14 +56,14 @@ public:
 
     }
 
-    bool intersect(const cg::Ray3f& ray, cg::Intersection& _hit) const {
+    bool intersect(const cg::Ray3f& ray, cg::Intersection& hit) const {
 
-        if (!shape) return 
-            false;
+        if (!shape) 
+            return false;
         
-        if (shape->intersect(ray, transform, _hit)) {
+        if (shape->intersect(ray, transform, hit)) {
 
-            _hit.object = const_cast<Actor*>(this); 
+            hit.object = const_cast<Actor*>(this); 
 
             return true;
 
@@ -69,8 +74,33 @@ public:
     }
     
     bool intersect(const cg::Ray3f& ray) const {
+
         cg::Intersection dummy;
+
+        dummy.distance = cg::math::Limits<float>::inf();
+
         return intersect(ray, dummy);
+
+    }
+
+    inline cg::vec3f getNormal(const cg::vec3f& globalPoint) const {
+
+        if (!shape) 
+            return {0,1,0};
+
+        cg::mat4f invMatrix;
+
+        if (!transform.inverse(invMatrix)) 
+            return {0,1,0};
+
+        cg::vec3f localPoint = invMatrix.transform(globalPoint);
+
+        cg::vec3f localNormal = shape->normal(localPoint);
+
+        cg::mat3f normalMatrix = cg::mat3f(invMatrix).transposed();
+
+        return (normalMatrix * localNormal).normalize();
+
     }
     
     const cg::mat4f& getTransform() const {

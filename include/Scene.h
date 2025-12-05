@@ -93,24 +93,33 @@ public:
         
         std::vector<cg::Reference<Actor>> list = actors;
 
-        bvh = new cg::BVH<Actor>(std::move(list));
+        std::cout << "--- Debugging BVH Inputs ---" << std::endl;
+        for (size_t i = 0; i < list.size(); ++i) {
+            auto b = list[i]->bounds();
+            auto c = b.center();
+            // Imprime apenas se for muito suspeito (na origem) ou sempre
+            std::cout << "Actor " << i;
+            c.print(" Center: "); 
+        }
+        printf("[buildBVH] actors: %d\n", list.size());
+
+        bvh = new cg::BVH<Actor>(std::move(list), 2, cg::BVHBase::SplitMethod::Median);
+
+        printf("[buildBVH] bvh size: %d\n", bvh->size());        
         
     }
 
-    bool intersect(cg::Ray3f& ray, cg::Intersection& _hit) {
-
-        _hit.distance = cg::math::Limits<float>::inf();
-        _hit.object = nullptr;
+    bool intersect(cg::Ray3f& ray, cg::Intersection& hit) {
 
         if (bvh) 
-            return bvh->intersect(ray, _hit); 
+            return bvh->intersect(ray, hit); 
 
         else {
 
             bool isHit = false;
 
             for (auto& actor : actors) 
-                if (actor->intersect(ray, _hit)) 
+                if (actor->intersect(ray, hit)) 
                     isHit = true;
             
             return isHit;

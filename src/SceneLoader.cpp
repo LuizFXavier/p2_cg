@@ -193,6 +193,7 @@ void SceneLoader::load(const std::string& filename, SceneManager& manager) {
                     }
                     
                     scene->addActor(actor);
+
                 }
             }
         }

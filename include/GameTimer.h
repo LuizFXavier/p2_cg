@@ -6,8 +6,6 @@ class GameTimer {
 
         float timer;     
 
-        
-
     public:
 
         float interval;     
