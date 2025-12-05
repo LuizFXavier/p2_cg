@@ -127,8 +127,8 @@ private:
   PixelBuffer* lineBuffer = nullptr;
   PixelBuffer gridBuffer[(maxSteps + 1)][(maxSteps + 1)];
 
-  float _adaptativeDistance; // Diferença mínima na componente da cor do pixel para que ocorra subdivisão
-  int _subDivisionLevel; // Nível de subdivisão que será utilizada na superamostragem
+  float _adaptativeDistance; 
+  int _subDivisionLevel;
   int _vezesQueSabo;
   int _consultas;
   int _subdivisions;
