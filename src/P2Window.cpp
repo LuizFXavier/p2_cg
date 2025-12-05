@@ -148,21 +148,6 @@ bool P2Window::onMouseLeftPress(int x, int y) {
 
 }
 
-void Raycaster::setImageSize(int width, int height) {
-    
-  if (image->width() != width || image->height() != height) {
-
-    image = std::make_unique<cg::GLImage>(width, height);
-
-    imageBuffer[0] = cg::ImageBuffer(width, height);
-    imageBuffer[1] = cg::ImageBuffer(width, height);
-    
-    _viewport = Viewport{}; 
-
-  }
-
-}
-
 void P2Window::resize(int w, int h) {
 
   _width = w;

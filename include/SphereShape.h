@@ -1,15 +1,12 @@
 #pragma once
 
 #include "Shape3.h"
-#include "Intersection.h"
 
 class SphereShape : public Shape3 {
 
 public:
 
     bool intersect(const cg::Ray3f& ray, const cg::mat4f& transform, cg::Intersection& hit) override {
-
-        Intersection& _hit = static_cast<Intersection&>(hit);
 
         cg::mat4f invMatrix;
 
@@ -46,23 +43,18 @@ public:
         else if (t1 > 0.001f) 
             t = t1;
 
-        else 
-            return false; 
+        else
+            return false;
 
         float scaleFactor = invMatrix.transformVector(ray.direction).length();
         float globalDist = t / scaleFactor;
 
         // caso houver intersecao
-        if (globalDist < _hit.distance) { 
+        if (globalDist < ray.tMax) { 
 
-            _hit.distance = globalDist; 
+            hit.distance = globalDist; 
 
-            _hit.point = ray.origin + ray.direction * _hit.distance;
-        
-            cg::vec3f localPoint = localRay.origin + localRay.direction * t;
-            cg::vec3f localNormal = localPoint.normalize();
-            
-            _hit.normal = invMatrix.transposed().transformVector(localNormal).normalize();
+            hit.p = ray.origin + ray.direction * hit.distance;
             
             return true;
 
@@ -74,6 +66,10 @@ public:
 
     cg::Bounds3f bounds() const override {
         return cg::Bounds3f{{-1, -1, -1}, {1, 1, 1}};
+    }
+
+    inline cg::vec3f normal(const cg::vec3f& localPoint) const override {
+        return localPoint;
     }
 
 };

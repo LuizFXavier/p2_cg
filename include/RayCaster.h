@@ -4,7 +4,6 @@
 #include "graphics/Camera.h"
 #include "graphics/GLImage.h"
 #include "graphics/Image.h"
-#include "Intersection.h"
 #include "LightPBR.h"
 #include <memory>
 #include <iostream>
@@ -28,7 +27,7 @@ public:
         PBR
     };
 
-    int lightModel = Raycaster::PHONG;
+    int lightModel = Raycaster::PBR;
 
     Raycaster(int width, int height);
 
@@ -85,9 +84,9 @@ private:
 
     cg::vec3f pixelPosition(float x, float y);
     
-    cg::Color shade(const cg::Ray3f& ray, const Intersection& hit);
+    cg::Color shade(const cg::Ray3f& ray, const cg::Intersection& hit);
 
-    bool intersect(cg::Ray3f&, Intersection&); // Verifica se houve intersecção do raio com a cena.
+    bool intersect(cg::Ray3f&, cg::Intersection&); // Verifica se houve intersecção do raio com a cena.
 
     bool shadow(cg::Ray3f& ray);
 
@@ -97,8 +96,8 @@ private:
 
     cg::Color trace(cg::Ray3f& ray);
 
-    cg::Color phongLightModel(const cg::Ray3f&, const Intersection&);
-    cg::Color pbrLightModel(const cg::Ray3f&, const Intersection&);
+    cg::Color phongLightModel(const cg::Ray3f&, const cg::Intersection&);
+    cg::Color pbrLightModel(const cg::Ray3f&, const cg::Intersection&);
 
     cg::Color background(){return _scene->backgroundColor;}
 };
@@ -127,13 +126,13 @@ Raycaster::setPixelRay(float x, float y){
 
 inline cg::Color
 Raycaster::trace(cg::Ray3f& ray){
-    Intersection hit;
+    cg::Intersection hit;
 
     return intersect(ray, hit) ? shade(ray, hit) : background();
 }
 
 inline bool
-Raycaster::intersect(cg::Ray3f& ray, Intersection& hit){
+Raycaster::intersect(cg::Ray3f& ray, cg::Intersection& hit){
     
     return _scene->intersect(ray, hit);;
 }
@@ -164,7 +163,10 @@ Raycaster::shoot(float x, float y){
 
 inline bool
 Raycaster::shadow(cg::Ray3f& ray){
-    Intersection hit;
+
+    cg::Intersection hit;
+    hit.distance = cg::math::Limits<float>::inf();
+
     return _scene->intersect(ray, hit);
 }
 

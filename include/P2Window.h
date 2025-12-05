@@ -5,7 +5,6 @@
 #include "graphics/Camera.h"
 #include "graphics/Color.h"
 #include "graphics/GLImage.h"
-#include "Intersection.h"
 #include "RayCaster.h"
 #include "PBRRenderer.h"
 #include "RenderMode.h"

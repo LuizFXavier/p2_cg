@@ -17,8 +17,6 @@ class BoxShape : public Shape3 {
 
         bool intersect(const cg::Ray3f& ray, const cg::mat4f& transform, cg::Intersection& hit) override {
 
-            Intersection& _hit = static_cast<Intersection&>(hit);
-
             cg::mat4f invMatrix;
 
             if (!transform.inverse(invMatrix))
@@ -44,39 +42,11 @@ class BoxShape : public Shape3 {
                 float scaleFactor = invMatrix.transformVector(ray.direction).length();
                 float globalDist = t / scaleFactor;
 
-                if (globalDist < hit.distance) {
+                if (globalDist < ray.tMax) {
 
-                    _hit.distance = globalDist;
-                    _hit.point = ray.origin + ray.direction * hit.distance;
-                    
-                    cg::vec3f localPoint = localRay.origin + localRay.direction * t;
+                    hit.distance = globalDist;
 
-                    cg::vec3f localNormal = {0, 0, 0};
-
-                    // margem de erro
-                    float epsilon = 1.5e-4f;  
-
-                    // verifica proximidade com as faces
-                    if (std::abs(localPoint.x - _bounds.min().x) < epsilon) 
-                        localNormal = {-1, 0, 0};
-
-                    else if (std::abs(localPoint.x - _bounds.max().x) < epsilon) 
-                        localNormal = {1, 0, 0};
-
-                    else if (std::abs(localPoint.y - _bounds.min().y) < epsilon) 
-                        localNormal = {0, -1, 0};
-
-                    else if (std::abs(localPoint.y - _bounds.max().y) < epsilon) 
-                        localNormal = {0, 1, 0};
-
-                    else if (std::abs(localPoint.z - _bounds.min().z) < epsilon) 
-                        localNormal = {0, 0, -1};
-
-                    else if (std::abs(localPoint.z - _bounds.max().z) < epsilon) 
-                        localNormal = {0, 0, 1};
-
-                    // transforma normal para global 
-                    _hit.normal = invMatrix.transposed().transformVector(localNormal).normalize();
+                    hit.p = ray.origin + ray.direction * hit.distance;
 
                     return true;
 
@@ -90,6 +60,34 @@ class BoxShape : public Shape3 {
 
         cg::Bounds3f bounds() const override { 
             return this->_bounds; 
+        }
+
+        inline cg::vec3f normal(const cg::vec3f& localPoint) const override {
+            
+            // margem de erro
+            float epsilon = 1.5e-4f;  
+
+            // verifica proximidade com as faces
+            if (std::abs(localPoint.x - _bounds.min().x) < epsilon) 
+                return {-1, 0, 0};
+
+            else if (std::abs(localPoint.x - _bounds.max().x) < epsilon) 
+                return {1, 0, 0};
+
+            else if (std::abs(localPoint.y - _bounds.min().y) < epsilon) 
+                return {0, -1, 0};
+
+            else if (std::abs(localPoint.y - _bounds.max().y) < epsilon) 
+                return {0, 1, 0};
+
+            else if (std::abs(localPoint.z - _bounds.min().z) < epsilon) 
+                return {0, 0, -1};
+
+            else if (std::abs(localPoint.z - _bounds.max().z) < epsilon) 
+                return {0, 0, 1};
+
+            return {0, 1, 0};
+
         }
         
         cg::Bounds3f getLocalBounds() const { 

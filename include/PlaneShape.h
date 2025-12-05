@@ -5,63 +5,61 @@
 
 class PlaneShape : public Shape3 {
 
+private:
+
+    cg::Bounds3f _bounds;
+
 public:
+
+    PlaneShape() {
+        _bounds.set({-1000.0f, -0.001f, -1000.0f}, {1000.0f, 0.001f, 1000.0f});
+    }
 
     bool intersect(const cg::Ray3f& ray, const cg::mat4f& transform, cg::Intersection& hit) override {
 
-        Intersection& _hit = static_cast<Intersection&>(hit);
-
         cg::mat4f invMatrix;
 
-        if (!transform.inverse(invMatrix))
+        if (!transform.inverse(invMatrix)) 
             return false;
 
-        // aqui vai de local pra global
-
+        // transforma raio para espaço local
         cg::vec3f localOrigin = invMatrix.transform(ray.origin);
 
-        cg::vec3f localDirection = ((cg::mat3f)invMatrix).transform(ray.direction).normalize();
-
-        cg::Ray3f localRay{ localOrigin, localDirection };
-
-        // calculo da intersecao
-
-        cg::vec3f planeNormal{0, 1, 0};
-
-        float denominator = localDirection.dot(planeNormal);
-
-        if (std::abs(denominator) < 0.0001f) 
-            return false;
+        cg::vec3f localDirection = invMatrix.transformVector(ray.direction).normalize();
+        
+        if (std::abs(localDirection.y) < 1e-6f) 
+            return false; 
         
 
-        float t = (planeNormal.dot(-localOrigin)) / denominator;
+        float t = -localOrigin.y / localDirection.y;
 
-        if (t <= 0.001f) 
-            return false;
-
-        cg::vec3f localPoint = localOrigin + localDirection * t;
-
-        if (std::abs(localPoint.x) > 1.0f || std::abs(localPoint.z) > 1.0f)
+        if (t < 0.001f) 
             return false; 
 
-        // caso houver intersecao
-        
-        cg::vec3f point = transform.transform(localPoint);
-        
-        float distance = (point - ray.origin).length();
+        float scaleFactor = invMatrix.transformVector(ray.direction).length();
+        float globalDist = t / scaleFactor;
 
-        cg::vec3f normal = invMatrix.transposed().transformVector(planeNormal).normalize();
+        // Verifica se é o hit mais próximo
+        if (globalDist < ray.tMax) {
 
-        _hit.distance = distance;
-        _hit.point = point;
-        _hit.normal = normal;
-        
-        return true;
+            hit.distance = globalDist;
+
+            hit.p = ray.origin + ray.direction * globalDist;
+            
+            return true;
+
+        }
+
+        return false;
         
     }
 
+    inline cg::vec3f normal(const cg::vec3f& localPoint) const override {
+        return cg::vec3f{0.0f, 1.0f, 0.0f};
+    }
+
     cg::Bounds3f bounds() const override {
-        return cg::Bounds3f{{-1, -1, -1}, {1, 1, 1}};
+        return _bounds;
     }
 
 };

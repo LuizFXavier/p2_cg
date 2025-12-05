@@ -52,7 +52,7 @@ rt_eps(){
 }
 
 cg::Color 
-Raycaster::shade(const cg::Ray3f& ray, const Intersection& hit) {
+Raycaster::shade(const cg::Ray3f& ray, const cg::Intersection& hit) {
 
     switch (lightModel){
 
@@ -69,16 +69,17 @@ Raycaster::shade(const cg::Ray3f& ray, const Intersection& hit) {
 }
 
 cg::Color 
-Raycaster::phongLightModel(const cg::Ray3f& ray, const Intersection& hit){
+Raycaster::phongLightModel(const cg::Ray3f& ray, const cg::Intersection& hit){
 
-    const auto& material = ((Actor*)hit.object)->material;
+    const auto& actor = ((Actor*)hit.object);
+    const auto& material = actor->material;
 
     cg::Color Lo = material.ambient * _scene->ambientLight;
 
-    auto P = hit.point;
+    auto P = hit.p;
     auto V = ray.direction;
 
-    cg::vec3f N = hit.normal;
+    cg::vec3f N = actor->getNormal(P);
     
     cg::Color Od = material.diffuse;
     cg::Color Os = material.specular;
@@ -99,7 +100,7 @@ Raycaster::phongLightModel(const cg::Ray3f& ray, const Intersection& hit){
         if(NL > 0)
             continue;
 
-        cg::Ray lightRay{ hit.point - L * rt_eps(), light.position() - P};
+        cg::Ray lightRay{ hit.p - L * rt_eps(), light.position() - P};
 
         if(shadow(lightRay))
             continue;
@@ -130,16 +131,17 @@ Raycaster::phongLightModel(const cg::Ray3f& ray, const Intersection& hit){
 }
 
 cg::Color 
-Raycaster::pbrLightModel(const cg::Ray3f& ray, const Intersection& hit){
-    
-    const auto& material = ((Actor*)hit.object)->material;
+Raycaster::pbrLightModel(const cg::Ray3f& ray, const cg::Intersection& hit){
+   
+    const auto& actor = ((Actor*)hit.object);
+    const auto& material = actor->material;
 
     cg::Color Lo = cg::Color{0.f, 0.f, 0.f};
 
-    auto P = hit.point;
+    auto P = hit.p;
     auto V = -ray.direction;
 
-    cg::vec3f N = hit.normal;
+    cg::vec3f N = actor->getNormal(P);
     
     cg::Color Od = material.diffuse;
     cg::Color Os = material.specular;
@@ -166,7 +168,7 @@ Raycaster::pbrLightModel(const cg::Ray3f& ray, const Intersection& hit){
         if(!cg::math::isPositive(NL))
             continue;
 
-        cg::Ray lightRay{ hit.point - L * rt_eps(), light.position() - P};
+        cg::Ray lightRay{ hit.p - L * rt_eps(), light.position() - P};
 
         if(shadow(lightRay))
             continue;
@@ -258,15 +260,26 @@ Actor* Raycaster::pick(Scene& scene, int x, int y) {
 
     setPixelRay(px, py); 
     
-    Intersection hit; 
-
+    cg::Intersection hit; 
     hit.distance = cg::math::Limits<float>::inf();
-
-    hit.object = nullptr;
 
     if (_scene->intersect(_pixelRay, hit)) 
         return (Actor*)hit.object; 
 
     return nullptr; 
+
+}
+
+void Raycaster::setImageSize(int width, int height) {
+    
+    if (image->width() == width && image->height() == height) 
+        return;
+
+    image = std::make_unique<cg::GLImage>(width, height);
+
+    imageBuffer[0] = cg::ImageBuffer(width, height);
+    imageBuffer[1] = cg::ImageBuffer(width, height);
+
+    _viewport = Viewport{}; 
 
 }
