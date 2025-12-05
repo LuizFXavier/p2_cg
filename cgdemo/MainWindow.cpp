@@ -272,6 +272,19 @@ MainWindow::mainMenu()
         0.01f,
         RayTracer::minMinWeight,
         1.0f);
+
+         ImGui::DragInt("Subdivision Level",
+    &_subdivisionLevel,
+    1.0f,
+    0,
+    RayTracer::maxSubdivision);
+  ImGui::DragFloat("Adaptative Distance",
+    &_adaptativeDistance,
+    0.01f,
+    0.0f,
+    RayTracer::maxAdaptativeDistance);
+
+
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Tools"))
@@ -397,6 +410,10 @@ MainWindow::renderScene()
       _rayTracer->setCamera(*camera);
     _rayTracer->setMaxRecursionLevel(_maxRecursionLevel);
     _rayTracer->setMinWeight(_minWeight);
+
+     _rayTracer->subDivisionLevel(_subdivisionLevel);
+    _rayTracer->setAdaptativeDistance(_adaptativeDistance);
+
     _rayTracer->renderImage(*_image);
   }
   _image->draw(0, 0);
